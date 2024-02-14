@@ -2,10 +2,12 @@ package com.example.myrecipai.exception;
 
 import com.example.myrecipai.dto.ErrorDTO;
 import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
+@ControllerAdvice
 public class CommonExceptionHandler {
 
     @ExceptionHandler(value = UnauthorizedException.class)

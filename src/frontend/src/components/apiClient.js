@@ -10,11 +10,16 @@ const axiosInstance = axios.create({
     withCredentials: true,
 });
 
-const token = localStorage.getItem("jwtToken");
-
 axiosInstance.interceptors.request.use(
-    (config) => {
-        config.headers.Authorization = `Bearer ${token}`;
+    async (config) => {
+        // Wait for the token to be retrieved from local storage
+        const token = await localStorage.getItem("jwtToken");
+
+        // Set the Authorization header if the token is available
+        if (token) {
+            config.headers.Authorization = `Bearer ${token}`;
+        }
+
         return config;
     },
     (error) => {

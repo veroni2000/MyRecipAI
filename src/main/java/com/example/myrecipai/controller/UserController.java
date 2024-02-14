@@ -1,5 +1,7 @@
 package com.example.myrecipai.controller;
 
+import com.example.myrecipai.config.JwtUtil;
+import com.example.myrecipai.dto.UserEditDTO;
 import com.example.myrecipai.dto.UserWithoutPasswordDTO;
 import com.example.myrecipai.model.User;
 import com.example.myrecipai.repository.UserRepository;
@@ -7,10 +9,8 @@ import com.example.myrecipai.service.UserService;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.Optional;
 
@@ -19,10 +19,10 @@ import java.util.Optional;
 public class UserController {
     @Autowired
     private UserRepository userRepository;
-
-    // Assuming you have a UserService to handle user-related operations
-
+    @Autowired
     private final UserService userService;
+    @Autowired
+    private JwtUtil jwtUtil;
 
     public UserController(UserService userService) {
         this.userService = userService;
@@ -42,6 +42,17 @@ public class UserController {
         } else {
             return ResponseEntity.notFound().build();
         }
+    }
+    @PostMapping("/edit")
+    public ResponseEntity<UserWithoutPasswordDTO> edit(@RequestBody UserEditDTO userEditDTO) {
+        ModelMapper mapper = new ModelMapper();
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        userService.edit(user, userEditDTO);
+        userRepository.save(user);
+        String jwtToken = jwtUtil.generateToken(user);
+        UserWithoutPasswordDTO userWithoutPassword = mapper.map(user, UserWithoutPasswordDTO.class);
+        userWithoutPassword.setToken(jwtToken);
+        return ResponseEntity.ok(userWithoutPassword);
     }
 }
 

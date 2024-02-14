@@ -1,4 +1,7 @@
 <template>
+  <div v-if="isCurrentUser">
+    <router-link to="/user/edit">Edit profile</router-link>
+  </div>
   <div>
     <h2>User Profile</h2>
     <div>
@@ -24,14 +27,21 @@ export default {
       user: {},
     };
   },
+  computed: {
+    isCurrentUser() {
+      const userIdFromParams = this.$route.params.userId;
+      const loggedInUserId = localStorage.getItem("id");
+      return userIdFromParams === loggedInUserId;
+    },
+  },
   mounted() {
     this.fetchUserDetails();
   },
   methods: {
     fetchUserDetails() {
-      // Retrieve user ID from route parameters
       console.log(this.$route.params.userId)
       const userId = this.$route.params.userId;
+      console.log('User ID: ' + localStorage.getItem('id'))
 
       axiosInstance.get(`/user/${userId}`)
           .then(response => {
@@ -43,7 +53,7 @@ export default {
           });
     },
     logout() {
-      localStorage.removeItem('jwtToken');
+      localStorage.clear();
       this.$router.push({ name: 'login' });
     }
   }

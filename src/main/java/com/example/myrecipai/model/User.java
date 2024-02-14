@@ -25,6 +25,11 @@ public class User implements UserDetails {
     private String email;
     private String password;
 
+    private Integer registrationCode;
+    private boolean isVerified;
+
+    private Integer resetCode;
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return null;

@@ -61,8 +61,8 @@ export default {
           .then(response => {
             if (response.data) {
               alert("User saved successfully");
-              // You can redirect to another page after successful registration
-              this.$router.push({ name: 'login' });
+              localStorage.setItem('email', this.user.email)
+              this.$router.push({ name: 'verify' });
             }
           })
           .catch(error => {
@@ -76,6 +76,7 @@ export default {
                 this.errorMessage = "Invalid request. Please check your input.";
               }
             } else {
+              console.log(error.response)
               this.errorMessage = "Registration failed. Recheck your input.";
             }
           });

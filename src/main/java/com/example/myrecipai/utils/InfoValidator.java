@@ -14,7 +14,7 @@ public class InfoValidator {
     }
 
     public void emailValidate(String email) {
-        String emailPattern = "^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$";
+        String emailPattern = "^[\\w+.-]+@[\\w-]+(\\.[\\w-]+)*\\.[\\w-]{2,4}$";
         if (!email.matches(emailPattern)) {
             throw new BadRequestException("Enter a valid email!");
         }
