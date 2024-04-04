@@ -73,6 +73,11 @@
 			<artifactId>jakarta.mail</artifactId>
 			<version>1.6.7</version> <!-- Use the appropriate version -->
 		</dependency>
+		<dependency>
+			<groupId>com.theokanning.openai-gpt3-java</groupId>
+			<artifactId>service</artifactId>
+			<version>0.18.2</version>
+		</dependency>
 	</dependencies>
 
 	<build>
