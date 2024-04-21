@@ -14,7 +14,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 
@@ -42,31 +44,31 @@ public class RecipeController {
 
     @PostMapping("/edit/{recipeId}")
     public ResponseEntity<RecipeDTO> editRecipe(@PathVariable Long recipeId,
-                                                @RequestBody RecipeEditDTO recipeEditDTO){
-        RecipeDTO recipeDTO = recipeService.findRecipeById(recipeId);
-        ModelMapper modelMapper = new ModelMapper();
-        Recipe recipe = modelMapper.map(recipeDTO, Recipe.class);
-
-        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        if(recipe.getUser().getId().equals(user.getId())){
-            recipeService.editRecipe(recipe, recipeEditDTO);
-        }
-        return ResponseEntity.ok(modelMapper.map(recipe, RecipeDTO.class));
+                                                @RequestBody RecipeDTO recipeDTO){
+        return recipeService.editRecipeById(recipeId, recipeDTO);
     }
     @GetMapping("/byUser")
     public List<RecipeDTO> findRecipesByUser(@RequestParam Long userId){
         return recipeService.findRecipesByUser(userId);
     }
-    @PostMapping("/generate")
-    public String generateRecipe(@RequestParam String msg) throws InterruptedException {
-        return chatGptService.getMessage(msg, assistRecipe);
+    @GetMapping("/generate")
+    public String generateRecipe(@RequestParam String prompt) throws InterruptedException {
+        return chatGptService.getMessage(prompt, assistRecipe);
     }
     @GetMapping("/image")
     public String image(@RequestParam String prompt){
         return chatGptService.getImage(prompt);
     }
     @GetMapping("/timeCalPrice")
-    public String timeCalPrice(@RequestParam String msg) throws InterruptedException {
-        return chatGptService.getMessage(msg, assistTimeCalPrice);
+    public String timeCalPrice(@RequestParam String prompt) throws InterruptedException {
+        return chatGptService.getMessage(prompt, assistTimeCalPrice);
+    }
+    @PostMapping("/saveImage")
+    public String saveImage(@RequestParam("file") MultipartFile file) {
+        return recipeService.saveImage(file);
+    }
+    @GetMapping("/saveUrlImage")
+    public String saveImage(@RequestParam String imageUrl) throws IOException {
+        return chatGptService.saveGeneratedImage(imageUrl);
     }
 }

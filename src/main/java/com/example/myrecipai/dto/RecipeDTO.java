@@ -17,4 +17,7 @@ public class RecipeDTO {
     private UserWithoutPasswordDTO createdBy;
     private List<RecipeIngredient> recipeIngredients;
     private Boolean aiGenerated;
+    private String image;
+    private Boolean showImage;
+    private String defaultMetric;
 }

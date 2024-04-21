@@ -4,15 +4,27 @@ import com.example.myrecipai.dto.CreateRecipeDTO;
 import com.example.myrecipai.dto.RecipeDTO;
 import com.example.myrecipai.dto.UserWithoutPasswordDTO;
 import com.example.myrecipai.exception.BadRequestException;
+import com.example.myrecipai.model.Recipe;
+import com.example.myrecipai.model.RecipeImage;
 import com.example.myrecipai.model.RecipeIngredient;
-import com.example.myrecipai.model.*;
+import com.example.myrecipai.model.User;
 import com.example.myrecipai.repository.IngredientRepository;
 import com.example.myrecipai.repository.RecipeRepository;
 import com.example.myrecipai.repository.UserRepository;
+import jakarta.servlet.http.HttpServletResponse;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -20,6 +32,8 @@ import java.util.Optional;
 
 @Service
 public class RecipeService {
+    @Value("${spring.image.directory}")
+    private String imageDirectory;
     @Autowired
     private RecipeRepository recipeRepository;
     @Autowired
@@ -43,12 +57,41 @@ public class RecipeService {
         for (RecipeIngredient recipeIngredient : recipe.getRecipeIngredients()) {
             recipeIngredient.setRecipe(recipe);
         }
+        if (createRecipeDTO.getRecipeImages() != null) {
+            for (RecipeImage recipeImage : recipe.getRecipeImages()) {
+                System.out.println(recipeImage);
+                recipeImage.setRecipe(recipe);
+            }
+        }
 
         recipeRepository.save(recipe);
         return recipe.getId();
     }
 
-    public RecipeDTO findRecipeById(Long recipeId){
+    private void updateFields(Recipe recipe, RecipeDTO recipeDTO) {
+        if (recipeDTO.getTitle() != null) {
+            recipe.setTitle(recipeDTO.getTitle());
+        }
+        if (recipeDTO.getInstructions() != null) {
+            recipe.setInstructions(recipeDTO.getInstructions());
+        }
+        if (recipeDTO.getRecipeIngredients() != null &&
+                recipeDTO.getRecipeIngredients().size() == recipe.getRecipeIngredients().size()) {
+            recipe.getRecipeIngredients().clear();
+            recipeDTO.getRecipeIngredients()
+                    .forEach(rec -> rec.setRecipe(recipe));
+            recipe.getRecipeIngredients().addAll(recipeDTO.getRecipeIngredients());
+        }
+        if (recipeDTO.getImage() != null) {
+            recipe.setImage(recipeDTO.getImage());
+        }
+        if (recipeDTO.getShowImage() != null) {
+            recipe.setShowImage(recipeDTO.getShowImage());
+        }
+        recipeRepository.save(recipe);
+    }
+
+    public RecipeDTO findRecipeById(Long recipeId) {
         ModelMapper modelMapper = new ModelMapper();
         Optional<Recipe> recipeOptional = recipeRepository.findById(recipeId);
         if (recipeOptional.isEmpty()) {
@@ -61,7 +104,7 @@ public class RecipeService {
         return recipeDTO;
     }
 
-    public List<RecipeDTO> findRecipesByUser(Long userId){
+    public List<RecipeDTO> findRecipesByUser(Long userId) {
         ModelMapper modelMapper = new ModelMapper();
         List<Recipe> recipes = recipeRepository.findAllByUserId(userId);
         List<RecipeDTO> recipeDTOList = new ArrayList<>();
@@ -71,5 +114,49 @@ public class RecipeService {
             recipeDTOList.add(dto);
         }
         return recipeDTOList;
+    }
+
+    public ResponseEntity<RecipeDTO> editRecipeById(Long recipeId, RecipeDTO recipeDTO) {
+        ModelMapper modelMapper = new ModelMapper();
+        Optional<Recipe> recipe = recipeRepository.findById(recipeId);
+        if (recipe.isEmpty()) {
+            throw new BadRequestException("Recipe not found");
+        }
+
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (recipe.get().getUser().getId().equals(user.getId())) {
+            updateFields(recipe.get(), recipeDTO);
+        }
+        return ResponseEntity.ok(modelMapper.map(recipe, RecipeDTO.class));
+    }
+
+    public String saveImage(MultipartFile file) {
+        try {
+            // Get the original filename of the uploaded file
+            String originalFileName = file.getOriginalFilename();
+
+            // Create the directory if it doesn't exist
+            Path directory = Paths.get(imageDirectory);
+            if (!Files.exists(directory)) {
+                Files.createDirectories(directory);
+            }
+
+            // Set the path where the file will be saved
+            Path filePath = directory.resolve(originalFileName);
+
+            // Save the file to the specified path
+            Files.write(filePath, file.getBytes());
+
+            // Return the name of the saved file (optional)
+            return file.getOriginalFilename();
+        } catch (Exception e) {
+            // Handle any exception that might occur during file upload
+            return "Failed to upload file: " + e.getMessage();
+        }
+    }
+
+    public void downloadImage(String name, HttpServletResponse response) throws IOException {
+        File file = new File(imageDirectory + name);
+        Files.copy(file.toPath(), response.getOutputStream());
     }
 }

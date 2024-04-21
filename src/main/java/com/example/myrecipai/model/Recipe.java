@@ -32,6 +32,12 @@ public class Recipe {
     @OneToMany(mappedBy = "recipe", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<RecipeIngredient> recipeIngredients = new ArrayList<>();
     private Boolean aiGenerated;
+    private String image;
+    private Boolean showImage;
+    private String defaultMetric;
+    @JsonManagedReference
+    @OneToMany(mappedBy = "recipe", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<RecipeImage> recipeImages = new ArrayList<>();
 //    @OneToMany(mappedBy = "recipe", cascade = CascadeType.ALL, orphanRemoval = true)
 //    private List<Like> likes = new ArrayList<>();
 }

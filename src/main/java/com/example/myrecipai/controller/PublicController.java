@@ -1,12 +1,24 @@
 package com.example.myrecipai.controller;
 
 import com.example.myrecipai.service.ChatGptService;
+import com.example.myrecipai.service.RecipeService;
 import com.theokanning.openai.assistants.Assistant;
 import com.theokanning.openai.service.OpenAiService;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 
 @RestController
@@ -15,6 +27,8 @@ import org.springframework.web.bind.annotation.*;
 public class PublicController {
     @Autowired
     private ChatGptService chatGptService;
+    @Autowired
+    private RecipeService recipeService;
     @Value("${openai.api.key}")
     private String openaiApiKey;
 
@@ -23,6 +37,9 @@ public class PublicController {
 
     @Value("${openai.api.assistant.grams-to-cups}")
     private String assistGramsToCups;
+
+    @Value("${spring.image.directory}")
+    private String imageDirectory;
 
     @GetMapping("/assistant")
     public Assistant assistant(@RequestParam String assistantId){
@@ -40,8 +57,23 @@ public class PublicController {
         return chatGptService.getMessage(msg, assistGramsToCups);
     }
 
+    @GetMapping("/image/{imageName:.+}")
+    public ResponseEntity<Resource> getImage(@PathVariable String imageName) throws MalformedURLException {
+        Path imagePath = Paths.get(imageDirectory).resolve(imageName);
+        Resource resource = new UrlResource(imagePath.toUri());
+
+        if (!resource.exists() || !resource.isReadable()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        return ResponseEntity.ok()
+                .contentType(MediaType.IMAGE_PNG) // Adjust content type based on image type
+                .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + resource.getFilename() + "\"")
+                .body(resource);
+    }
+
     @GetMapping("/image")
-    public String image(@RequestParam String prompt){
-        return chatGptService.getImage(prompt);
+    public void downloadImage(@RequestParam(name = "file") String name, HttpServletResponse response) throws IOException {
+        recipeService.downloadImage(name, response);
     }
 }

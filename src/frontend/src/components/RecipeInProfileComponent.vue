@@ -4,6 +4,7 @@
       <div>
         <strong> {{ recipe.title }}</strong>
       </div>
+      <img width="150px" :src="recipe.image" />
       <div>
         <strong>Ingredients:</strong>
         <ul>
