@@ -1,5 +1,3 @@
-<!-- LoginComponent.vue -->
-
 <template>
   <div class="row">
     <h2 align="center">User Login</h2>
@@ -22,12 +20,14 @@
         <button type="submit" class="btn btn-primary">Login</button>
       </form>
       <router-link :to="{ name: 'register' }">Register</router-link>
+      <br>
+      <router-link :to="{ name: 'forgotten' }">Forgotten password</router-link>
     </div>
   </div>
 </template>
 
 <script>
-import axiosInstance from "@/components/apiClient";
+import axios from 'axios';
 
 export default {
   name: 'LoginComponent',
@@ -36,27 +36,46 @@ export default {
       user: {
         email: '',
         password: ''
-      }
+      },
+      errorMessage: null
     };
   },
   methods: {
     loginUser() {
-      axiosInstance.post("/public/login", this.user)
+      this.errorMessage = null;
+
+      axios.post("/api/public/login", this.user)
           .then(response => {
             if (response.data && response.data.token) {
               console.log(response.data)
-              // Store the token in localStorage or a more secure storage mechanism
               localStorage.clear();
-              localStorage.setItem('user', response.data)
+              localStorage.setItem('id', response.data.id);
               localStorage.setItem('jwtToken', response.data.token);
 
-              alert("Login successful");
-              // You can redirect to another page after successful login
-              this.$router.push({ name: 'user', params: { userId: response.data.id } });
+              console.log(response.data)
+              console.log(localStorage.getItem('user'))
+              // this.$router.push({ name: 'home'});
+              window.location.href = '/';
             } else {
-              alert("Login failed. Check your credentials.");
+              this.errorMessage = "Login failed. Check your credentials.";
             }
           })
+          .catch(error => {
+            console.error('Login error:', error);
+            if (error.response) {
+              console.log(error.response)
+              const errorMessage = error.response.data.message;
+              if (errorMessage === 'User is not verified') {
+                localStorage.setItem('email', this.user.email)
+                this.$router.push({ name: 'verify' });
+              } else {
+                this.errorMessage = errorMessage;
+              }
+            } else {
+              // Display generic error message for other errors
+              this.errorMessage = "An unexpected error occurred. Please try again later.";
+            }
+          });
     }
   }
 };

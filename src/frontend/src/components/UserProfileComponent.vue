@@ -21,6 +21,7 @@
           <div>
             <router-link :to="{ name: 'recipe', params: { recipeId: recipe.id }}" class="recipe-title">{{ recipe.title }}</router-link>
           </div>
+          <img v-if="recipe.image" :src="require(`../../../main/resources/images/${recipe.image}`)" :alt="recipe.image" width="150px" />
           <div>
             <strong>Ingredients:</strong>
             <ul>

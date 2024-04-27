@@ -14,6 +14,10 @@ import EmailComponent from "@/components/EmailComponent";
 import ResetPasswordComponent from "@/components/ResetPasswordComponent";
 import AddIngredientComponent from "@/components/AddIngredientComponent";
 import recipePageComponent from "@/components/RecipePageComponent";
+import recipeEditComponent from "@/components/RecipeEditComponent";
+import recipeModifyComponent from "@/components/RecipeModifyComponent";
+import imageUploadComponent from "@/components/ImageUploadComponent";
+import generateRecipeComponent from "@/components/GenerateRecipeComponent";
 
 // Create the router instance
 const router = createRouter({
@@ -31,6 +35,10 @@ const router = createRouter({
         { path: '/forgotten', name: 'forgotten', component: EmailComponent },
         { path: '/reset', name: 'reset', component: ResetPasswordComponent },
         { path: '/recipe/:recipeId', name: 'recipe', component: recipePageComponent },
+        { path: '/recipe/edit/:recipeId', name: 'recipeEdit', component: recipeEditComponent },
+        { path: '/recipe/modify/:recipeId', name: 'recipeModify', component: recipeModifyComponent },
+        { path: '/image', name: 'image', component: imageUploadComponent },
+        { path: '/generate', name: 'generate', component: generateRecipeComponent },
     ]
 });
 

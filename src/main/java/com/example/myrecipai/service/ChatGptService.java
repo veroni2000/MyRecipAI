@@ -13,6 +13,14 @@ import com.theokanning.openai.threads.ThreadRequest;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.net.URL;
+import java.nio.channels.Channels;
+import java.nio.channels.FileChannel;
+import java.nio.channels.ReadableByteChannel;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -21,6 +29,9 @@ import java.util.concurrent.TimeUnit;
 public class ChatGptService {
     @Value("${openai.api.key}")
     private String openaiApiKey;
+
+    @Value("${spring.image.directory}")
+    private String imageDirectory;
 
     public String getMessage(String userMessage, String assistantId) throws InterruptedException {
         OpenAiService openAiService = new OpenAiService(openaiApiKey);
@@ -40,24 +51,34 @@ public class ChatGptService {
         Run run = openAiService.createThreadAndRun(createThreadAndRunRequest);
         Thread thread = openAiService.retrieveThread(run.getThreadId());
 
-        while (run.getStatus().equals("queued") || run.getStatus().equals("in_progress")){
-            run = openAiService.retrieveRun(thread.getId(),run.getId());
+        while (run.getStatus().equals("queued") || run.getStatus().equals("in_progress")) {
+            run = openAiService.retrieveRun(thread.getId(), run.getId());
             TimeUnit.SECONDS.sleep(1);
         }
 
         OpenAiResponse<Message> returnedMessages = openAiService.listMessages(thread.getId());
-        String returnedValue = openAiService.retrieveMessage(run.getThreadId(),returnedMessages.firstId).getContent().get(0).getText().getValue();
+        String returnedValue = openAiService.retrieveMessage(run.getThreadId(), returnedMessages.firstId).getContent().get(0).getText().getValue();
         openAiService.deleteThread(run.getThreadId());
 
         return returnedValue;
     }
 
-    public String getImage(String prompt){
+    public String getImage(String prompt) {
         OpenAiService openAiService = new OpenAiService(openaiApiKey);
         CreateImageRequest createImageRequest = new CreateImageRequest();
         createImageRequest.setPrompt(prompt);
-        createImageRequest.setSize("1024x1024");
+        createImageRequest.setSize("512x512");
         Image image = openAiService.createImage(createImageRequest).getData().get(0);
         return image.getUrl();
+    }
+
+    public String saveGeneratedImage(String imageUrl) throws IOException {
+        URL url = new URL(imageUrl);
+        ReadableByteChannel readableByteChannel = Channels.newChannel(url.openStream());
+        String imageName = "image" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd-MM-yyyy-HH-mm-ss")) + ".png";
+        FileOutputStream fileOutputStream = new FileOutputStream(imageDirectory + imageName);
+        FileChannel fileChannel = fileOutputStream.getChannel();
+        fileChannel.transferFrom(readableByteChannel, 0, Long.MAX_VALUE);
+        return imageName;
     }
 }

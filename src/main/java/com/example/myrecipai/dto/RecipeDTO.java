@@ -20,4 +20,7 @@ public class RecipeDTO {
     private String image;
     private Boolean showImage;
     private String defaultMetric;
+    private String recipeTime;
+    private String recipeCalories;
+    private String recipePrice;
 }

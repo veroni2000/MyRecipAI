@@ -15,8 +15,8 @@ public class IngredientController {
     private IngredientService ingredientService;
 
     @PostMapping("")
-    public void addIngredient(@RequestBody IngredientDTO ingredientDTO){
-        ingredientService.addIngredient(ingredientDTO);
+    public Long addIngredient(@RequestBody IngredientDTO ingredientDTO){
+        return ingredientService.addIngredient(ingredientDTO);
     }
 
     @GetMapping("")

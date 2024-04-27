@@ -27,6 +27,7 @@ public class Recipe {
     @JoinColumn(name = "user_id")
     private User user;
     private Date dateCreated;
+    @Column(length = 1024)
     private String instructions;
     @JsonManagedReference
     @OneToMany(mappedBy = "recipe", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -35,6 +36,9 @@ public class Recipe {
     private String image;
     private Boolean showImage;
     private String defaultMetric;
+    private String recipeTime;
+    private String recipeCalories;
+    private String recipePrice;
     @JsonManagedReference
     @OneToMany(mappedBy = "recipe", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<RecipeImage> recipeImages = new ArrayList<>();

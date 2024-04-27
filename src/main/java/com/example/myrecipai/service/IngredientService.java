@@ -14,10 +14,12 @@ public class IngredientService {
     @Autowired
     private IngredientRepository ingredientRepository;
 
-    public void addIngredient(IngredientDTO ingredientDTO){
+    public Long addIngredient(IngredientDTO ingredientDTO){
         ModelMapper modelMapper = new ModelMapper();
         Ingredient ingredient = modelMapper.map(ingredientDTO, Ingredient.class);
         ingredientRepository.save(ingredient);
+        System.out.println(ingredient.getId());
+        return ingredient.getId();
     }
 
     public List<Ingredient> findIngredients(String name){

@@ -144,6 +144,7 @@ export default {
       }
     },
     handleIngredientSelected(ingredientName, index) {
+      ingredientName = ingredientName.toLowerCase();
       axios.get(`/api/ingredient/find?name=${ingredientName}`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('jwtToken')}`

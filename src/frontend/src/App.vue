@@ -4,6 +4,7 @@
       <router-link to="/">Home</router-link>
       <router-link to="/calculator">Metrics calculator</router-link>
       <router-link v-if="isLoggedIn" to="/addRecipe">Add Recipe</router-link>
+      <router-link v-if="isLoggedIn" to="/generate">Generate Recipe</router-link>
       <router-link v-if="!isLoggedIn" to="/login">Login</router-link>
       <router-link v-if="isLoggedIn" onclick="window.location.href=''" :to="profileLink">Profile</router-link>
       <button v-if="isLoggedIn"  @click="logout">Logout</button>
