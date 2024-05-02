@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.Date;
 import java.util.List;
 
 @Getter
@@ -13,6 +14,7 @@ import java.util.List;
 public class RecipeDTO {
     private Long id;
     private String title;
+    private Date dateCreated;
     private String instructions;
     private UserWithoutPasswordDTO createdBy;
     private List<RecipeIngredient> recipeIngredients;

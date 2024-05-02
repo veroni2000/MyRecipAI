@@ -204,6 +204,7 @@ export default {
       }
       await this.getMeasurements();
       await this.getTimeCalPrice();
+
       axios.post(`/api/recipe/edit/${this.recipe.id}`, this.recipe, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('jwtToken')}`

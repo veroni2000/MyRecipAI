@@ -88,6 +88,15 @@ public class RecipeService {
         if (recipeDTO.getShowImage() != null) {
             recipe.setShowImage(recipeDTO.getShowImage());
         }
+        if (recipeDTO.getRecipeTime() != null){
+            recipe.setRecipeTime(recipeDTO.getRecipeTime());
+        }
+        if (recipeDTO.getRecipeCalories() != null){
+            recipe.setRecipeCalories(recipeDTO.getRecipeCalories());
+        }
+        if (recipeDTO.getRecipePrice() != null){
+            recipe.setRecipePrice(recipeDTO.getRecipePrice());
+        }
         recipeRepository.save(recipe);
     }
 

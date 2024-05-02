@@ -1,5 +1,4 @@
 <template>
-  <mdb-btn>Hello world</mdb-btn>
   <div>
     <div v-if="!startedGenerating">
       <p>Enter Ingredients:</p>
@@ -40,7 +39,6 @@
 
 <script>
 import axios from "axios";
-import {mdbBtn} from 'mdbvue';
 
 export default {
   name: "GenerateRecipeComponent",
@@ -65,13 +63,11 @@ export default {
       loadingText: '',
     };
   },
-  components: {
-    mdbBtn
-  },
   methods: {
     sanitizeInput(event) {
       const inputValue = event.target.value;
       const sanitizedValue = inputValue.replace(/[^a-zA-Z0-9,. ]/g, '');
+      // Update the data property with the sanitized value
       this.ingredientInput = sanitizedValue;
     },
     async generateRecipe() {
@@ -134,7 +130,8 @@ export default {
               }
             })
                 .then(async response => {
-                  if (response.data.length > 0) {
+                  console.log("RESPONSE: "+ JSON.stringify(response.data));
+                  if (response.data) {
                     // If ingredient already exists, use its ID
                     const existingIngredientId = response.data.id;
 
@@ -174,11 +171,18 @@ export default {
                 .catch(error => {
                   console.error('Error searching ingredients:', error);
                 });
+
+
+            // this.recipe.recipeIngredients.push({
+            //   id: null,
+            //   ingredient: {id: ingredientId, ingredient: ingredientName},
+            //   weight: weight,
+            // });
           }
         }
       }
       this.loadingText += 'Generating image...\n';
-      await this.getImage();
+      //await this.getImage();
       this.loadingText += 'Converting measurements...\n';
       await this.getVolume();
       this.finishedGenerating = true;

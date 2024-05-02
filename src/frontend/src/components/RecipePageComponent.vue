@@ -2,7 +2,7 @@
   <div class="recipe-details">
     <div v-if="recipe" class="details">
       <div class="detail-item">
-        <h2 class="title">{{ recipe.title }}</h2>
+        <h2 class="title">{{ recipe.title }} <MDBBadge v-if="recipe.aiGenerated" color="primary">AI</MDBBadge></h2>
       </div>
       <div v-if="isCurrentUser" class="edit-profile-link">
         <router-link :to="'/recipe/edit/' + recipe.id">Edit recipe</router-link>
@@ -54,9 +54,13 @@
 
 <script>
 import axios from 'axios';
+import { MDBBadge } from "mdb-vue-ui-kit";
 
 export default {
   name: 'RecipePageComponent',
+  components: {
+    MDBBadge
+  },
   data() {
     return {
       recipe: null,
