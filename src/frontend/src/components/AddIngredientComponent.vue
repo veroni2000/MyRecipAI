@@ -1,14 +1,23 @@
 <template>
   <div class="search-container">
-    <input type="text" v-model="ingredient" @input="handleInput" placeholder="Enter ingredient">
+    <input
+        type="text"
+        v-model="ingredient"
+        @input="handleInput"
+        placeholder="Enter ingredient"
+        class="form-control"
+    >
     <ul v-if="showResults" class="search-results">
       <li v-for="result in results" :key="result.id" @click="selectIngredient(result)">
         {{ result.ingredient }}
       </li>
-      <li v-if="showAddButton" @click="addNewIngredient">Add "{{ ingredient }}"</li>
+      <li v-if="showAddButton" @click="addNewIngredient">
+        Add "{{ ingredient }}"
+      </li>
     </ul>
   </div>
 </template>
+
 
 <script>
 import axios from 'axios';
@@ -27,7 +36,7 @@ export default {
   computed: {
     showAddButton() {
       // Check if the input exactly matches any of the results and the button is not already clicked
-      return this.results.every(result => result.ingredient.toLowerCase() !== this.ingredient.toLowerCase()) && !this.addButtonClicked;
+      return this.results.every(result => result.ingredient.toLowerCase() !== this.ingredient.toLowerCase().trimEnd()) && !this.addButtonClicked;
     }
   },
   methods: {
@@ -37,6 +46,7 @@ export default {
       this.searchIngredients();  // Trigger search when input changes
     },
     searchIngredients() {
+      this.$emit('ingredient-selected', '');
       if (this.ingredient.length >= 3) {
         axios.get(`/api/ingredient?name=${this.ingredient}`, {
           headers: {
@@ -80,3 +90,42 @@ export default {
   }
 }
 </script>
+
+<style scoped>
+.search-container {
+  position: relative;
+}
+
+.search-container input {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.search-results {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 100%;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background-color: #fff;
+  max-height: 200px;
+  overflow-y: auto;
+  z-index: 1000;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  margin-top: 5px;
+  padding: 0;
+  list-style: none;
+}
+
+.search-results li {
+  padding: 10px;
+  cursor: pointer;
+}
+
+.search-results li:hover {
+  background-color: #f0f0f0;
+}
+</style>

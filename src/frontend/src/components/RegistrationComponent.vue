@@ -1,36 +1,46 @@
 <template>
-  <div class="row">
-
+  <div class="justify-content-center">
     <h2 align="center">User Registration</h2>
 
-    <div class="col-sm-6">
+    <div class="col-sm-6 mx-auto">
       <form @submit.prevent="saveData">
         <div class="form-group">
           <label for="userEmailInput">Email</label>
-          <input type="email" v-model="user.email" class="form-control" id="userEmailInput" placeholder="Enter email">
+          <MDBInput type="email" v-model="user.email" class="form-control" id="userEmailInput"
+                    placeholder="Enter email"/>
         </div>
 
         <div class="form-group">
           <label for="userFirstNameInput">First Name</label>
-          <input type="text" v-model="user.firstName" class="form-control" id="userFirstNameInput" placeholder="Enter first name">
+          <MDBInput type="text" v-model="user.firstName" class="form-control" id="userFirstNameInput"
+                    placeholder="Enter first name"/>
         </div>
 
         <div class="form-group">
           <label for="userLastNameInput">Last Name</label>
-          <input type="text" v-model="user.lastName" class="form-control" id="userLastNameInput" placeholder="Enter last name">
+          <MDBInput type="text" v-model="user.lastName" class="form-control" id="userLastNameInput"
+                    placeholder="Enter last name"/>
         </div>
 
         <div class="form-group">
           <label for="userPasswordInput">Password</label>
-          <input type="password" v-model="user.password" class="form-control" id="userPasswordInput" placeholder="Enter password">
+          <MDBInput type="password" v-model="user.password" class="form-control" id="userPasswordInput"
+                    placeholder="Enter password"/>
         </div>
+        <br>
         <div v-if="errorMessage" class="alert alert-danger" role="alert">
           {{ errorMessage }}
         </div>
-    <br>
-        <button type="submit" class="btn btn-primary">Submit</button>
+        <br>
+        <MDBBtn type="submit" class="btn btn-primary"
+                :disabled="!user.email||!user.firstName||!user.lastName||!user.password">Register
+        </MDBBtn>
       </form>
-      <router-link :to="{ name: 'login' }">Go to Login</router-link>
+      <div class="text-center">
+        <p>Already have an account?
+          <router-link :to="{ name: 'login' }">Sign in</router-link>
+        </p>
+      </div>
     </div>
   </div>
 </template>
@@ -38,9 +48,18 @@
 <script>
 
 import axios from 'axios';
+import {
+  MDBInput,
+  MDBBtn,
+} from "mdb-vue-ui-kit";
+import {ref} from "vue";
 
 export default {
   name: 'RegistrationComponent',
+  components: {
+    MDBInput,
+    MDBBtn,
+  },
   data() {
     return {
       user: {
@@ -52,6 +71,15 @@ export default {
       errorMessage: null
     };
   },
+  setup() {
+    const loginEmailInput = ref("");
+    const loginPasswordInput = ref("");
+
+    return {
+      loginEmailInput,
+      loginPasswordInput,
+    };
+  },
   methods: {
     saveData() {
       // Clear previous error message
@@ -60,9 +88,8 @@ export default {
       axios.post("/api/public/register", this.user)
           .then(response => {
             if (response.data) {
-              alert("User saved successfully");
               localStorage.setItem('email', this.user.email)
-              this.$router.push({ name: 'verify' });
+              this.$router.push({name: 'verify'});
             }
           })
           .catch(error => {

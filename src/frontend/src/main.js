@@ -1,3 +1,4 @@
+import 'mdb-vue-ui-kit/css/mdb.min.css'
 import { createApp } from 'vue';
 import { createRouter, createWebHistory } from 'vue-router';
 import axios from 'axios'; // Import axios
@@ -48,7 +49,7 @@ axios.interceptors.response.use(
     error => {
         if (error.response.status === 403) {
             // Redirect to the forbidden page
-            router.push('/login'); // Customize the route as needed
+            router.push('/login');
         }
         return Promise.reject(error);
     }

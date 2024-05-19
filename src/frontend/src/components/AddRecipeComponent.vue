@@ -1,26 +1,29 @@
 <template>
-  <div>
+  <div class="justify-content-center">
     <h2 align="center">Add Recipe</h2>
 
-    <div class="col-sm-6">
+    <div class="col-sm-6 mx-auto">
       <form @submit.prevent="saveRecipe">
         <div class="form-group">
           <label for="recipeTitleInput">Title</label>
           <br>
-          <input type="text" v-model="recipe.title" class="form-control" id="recipeTitleInput" placeholder="Enter recipe title">
+          <MDBInput type="text" v-model="recipe.title" class="form-control" id="recipeTitleInput" placeholder="Enter recipe title"/>
         </div>
 
         <div class="form-group">
           <label for="recipeContentInput">Instructions</label>
           <br>
-          <textarea v-model="recipe.instructions" class="form-control" id="recipeContentInput" rows="5" placeholder="Enter recipe instructions" @keydown.enter.prevent="handleEnter"></textarea>
+          <MDBTextarea v-model="recipe.instructions" class="form-control" id="recipeContentInput" rows="5" placeholder="Enter recipe instructions" @keydown.enter.prevent="handleEnter"/>
         </div>
 
         <div class="form-group">
           <label>Select Measurement:</label>
           <div class="custom-control custom-switch">
-            <input type="checkbox" class="custom-control-input" id="measurementSwitch" v-model="isWeightMode">
-            <label class="custom-control-label" for="measurementSwitch">Weight</label>
+            <div class="switch-container">
+              <p style="display: inline-block; margin-right: 10px;">Volume</p>
+              <MDBSwitch class="custom-control-input" id="measurementSwitch" v-model="isWeightMode"></MDBSwitch>
+              <p style="display: inline-block; margin-left: 10px;">Weight</p>
+            </div>
           </div>
         </div>
 
@@ -44,20 +47,16 @@
                 :placeholder="isWeightMode ? 'Enter weight' : 'Enter volume'"
                 @input="validateWeightOrVolume(ingredientItem, index)"
             >
+            <!-- Button to remove ingredient -->
+            <button type="button" class="btn btn-outline-secondary" @click="removeIngredient(index)" v-if="index > 0">-</button>
+          </div>
 
             <div class="input-group-append">
-              <!-- Button to remove ingredient -->
-              <button type="button" class="btn btn-outline-secondary" @click="removeIngredient(index)" v-if="index > 0">-</button>
               <!-- Button to add ingredient -->
               <button type="button" class="btn btn-outline-secondary" @click="addIngredient()" v-if="index === recipe.recipeIngredients.length - 1">+</button>
             </div>
           </div>
-        </div>
-        <label>Upload image</label>
         <br>
-        <input type="file" ref="uploadImage" @change="onImageUpload" />
-
-        <br><br>
         <button type="submit" class="btn btn-primary" :disabled="!isFormValid">Create recipe</button>
       </form>
     </div>
@@ -67,12 +66,19 @@
 <script>
 import axios from 'axios';
 import AddIngredientComponent from "@/components/AddIngredientComponent";
-/* eslint-disable */
+import {
+  MDBInput,
+  MDBSwitch,
+  MDBTextarea,
+} from "mdb-vue-ui-kit";
 
 export default {
   name: 'AddRecipeComponent',
   components: {
-    AddIngredientComponent
+    AddIngredientComponent,
+    MDBSwitch,
+    MDBInput,
+    MDBTextarea
   },
   data() {
     return {
@@ -88,11 +94,6 @@ export default {
             },
             weight: '',
             volume: ''
-          },
-        ],
-        recipeImages: [
-          {
-            imageName: '',
           },
         ],
         image: "",
@@ -122,7 +123,6 @@ export default {
       this.recipe.recipeIngredients.splice(index, 1);
     },
     async saveRecipe() {
-      try {
         await this.fileUpload();
         console.log(JSON.stringify(this.recipe));
         const response = await axios.post('/api/recipe', {
@@ -136,12 +136,12 @@ export default {
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('jwtToken')}`
           },
+        }).catch(error => {
+          console.error('Error:', error);
+          this.errorMessage = error.response.data.message || 'An error occurred while saving the recipe.';
         });
         const recipeId = response.data;
         await this.$router.push({name: 'recipeModify', params: {recipeId: recipeId}});
-      } catch (error) {
-        this.errorMessage = error.response.data.message || 'An error occurred while saving the recipe.';
-      }
     },
     handleIngredientSelected(ingredientName, index) {
       ingredientName = ingredientName.toLowerCase();
@@ -186,32 +186,16 @@ export default {
         this.recipe.instructions = this.recipe.instructions.slice(0, cursorPosition) + '\n' + this.recipe.instructions.slice(cursorPosition);
       }
     },
-    onImageUpload() {
-      let file = this.$refs.uploadImage.files[0];
-      this.formData = new FormData();
-      this.formData.append("file", file);
-      //this.recipe.recipeImages.push({ imageName: '' });
-    },
-    async fileUpload() {
-      if (this.formData != null) {
-        await axios.post(`/api/recipe/saveImage`, this.formData, {
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('jwtToken')}`,
-            'Content-Type': 'multipart/form-data' // Set Content-Type to multipart/form-data
-          }
-        })
-            .then(response => {
-              console.log('Image saved successfully:', response.data);
-              this.recipe.recipeImages[0].imageName = response.data;
-              console.log("Recipe IMAGE NAME: " + this.recipe.recipeImages);
-              // Handle response data as needed
-            })
-            .catch(error => {
-              console.error('Error saving image:', error);
-              // Handle error if the request fails
-            });
-      }
-    }
   }
 };
 </script>
+<style>
+.switch-container {
+  display: inline-flex;
+  align-items: center;
+}
+#measurementSwitch:disabled{
+  background-color: aquamarine;
+}
+
+</style>

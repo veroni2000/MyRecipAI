@@ -5,12 +5,14 @@ import com.example.myrecipai.dto.UserEditDTO;
 import com.example.myrecipai.dto.UserWithoutPasswordDTO;
 import com.example.myrecipai.model.User;
 import com.example.myrecipai.repository.UserRepository;
+import com.example.myrecipai.service.RecipeService;
 import com.example.myrecipai.service.UserService;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Optional;
 
@@ -23,6 +25,8 @@ public class UserController {
     private final UserService userService;
     @Autowired
     private JwtUtil jwtUtil;
+    @Autowired
+    private RecipeService recipeService;
 
     public UserController(UserService userService) {
         this.userService = userService;
@@ -53,6 +57,11 @@ public class UserController {
         UserWithoutPasswordDTO userWithoutPassword = mapper.map(user, UserWithoutPasswordDTO.class);
         userWithoutPassword.setToken(jwtToken);
         return ResponseEntity.ok(userWithoutPassword);
+    }
+
+    @PostMapping("/saveImage")
+    public String saveImage(@RequestParam("file") MultipartFile file) {
+        return recipeService.saveImage(file);
     }
 }
 

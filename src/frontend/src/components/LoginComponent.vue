@@ -1,36 +1,52 @@
 <template>
-  <div class="row">
+  <div class="justify-content-center">
     <h2 align="center">User Login</h2>
-
-    <div class="col-sm-6">
+    <div class="col-sm-6 mx-auto">
       <form @submit.prevent="loginUser">
         <div class="form-group">
           <label for="loginEmailInput">Email</label>
-          <input type="email" v-model="user.email" class="form-control" id="loginEmailInput" placeholder="Enter email">
+          <MDBInput type="email" v-model="user.email" class="form-control" id="loginEmailInput"
+                    placeholder="Enter email"/>
         </div>
-
         <div class="form-group">
           <label for="loginPasswordInput">Password</label>
-          <input type="password" v-model="user.password" class="form-control" id="loginPasswordInput" placeholder="Enter password">
+          <MDBInput type="password" v-model="user.password" class="form-control" id="loginPasswordInput"
+                    placeholder="Enter password"/>
         </div>
+        <div class="text-center">
+          <router-link :to="{ name: 'forgotten' }">Forgot password?</router-link>
+        </div>
+        <br>
         <div v-if="errorMessage" class="alert alert-danger" role="alert">
           {{ errorMessage }}
         </div>
-        <br>
-        <button type="submit" class="btn btn-primary">Login</button>
+
+        <MDBBtn type="submit" class="btn btn-primary" :disabled="!user.email||!user.password">Sign in</MDBBtn>
       </form>
-      <router-link :to="{ name: 'register' }">Register</router-link>
-      <br>
-      <router-link :to="{ name: 'forgotten' }">Forgotten password</router-link>
+      <div class="text-center">
+        <p>Not a member?
+          <router-link :to="{ name: 'register' }">Register</router-link>
+        </p>
+      </div>
+
     </div>
   </div>
 </template>
 
 <script>
 import axios from 'axios';
+import {
+  MDBInput,
+  MDBBtn,
+} from "mdb-vue-ui-kit";
+import {ref} from "vue";
 
 export default {
   name: 'LoginComponent',
+  components: {
+    MDBInput,
+    MDBBtn,
+  },
   data() {
     return {
       user: {
@@ -38,6 +54,15 @@ export default {
         password: ''
       },
       errorMessage: null
+    };
+  },
+  setup() {
+    const loginEmailInput = ref("");
+    const loginPasswordInput = ref("");
+
+    return {
+      loginEmailInput,
+      loginPasswordInput,
     };
   },
   methods: {
@@ -67,7 +92,7 @@ export default {
               const errorMessage = error.response.data.message;
               if (errorMessage === 'User is not verified') {
                 localStorage.setItem('email', this.user.email)
-                this.$router.push({ name: 'verify' });
+                this.$router.push({name: 'verify'});
               } else {
                 this.errorMessage = errorMessage;
               }
@@ -80,3 +105,4 @@ export default {
   }
 };
 </script>
+

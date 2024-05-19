@@ -29,6 +29,7 @@ public class User implements UserDetails {
     private boolean isVerified;
 
     private Integer resetCode;
+    private String image;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

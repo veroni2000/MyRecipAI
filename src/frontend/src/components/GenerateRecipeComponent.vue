@@ -1,37 +1,41 @@
 <template>
-  <div>
-    <div v-if="!startedGenerating">
-      <p>Enter Ingredients:</p>
-      <textarea id="ingredients" v-model="ingredientInput" rows="4" @input="sanitizeInput"></textarea>
-      <br>
-      <button @click="generateRecipe">Generate Recipe</button>
+  <div class="generate-recipe-container">
+    <div v-if="!startedGenerating" class="input-section">
+      <h2>Enter Ingredients:</h2>
+      <textarea id="ingredients" v-model="ingredientInput" rows="4" @input="sanitizeInput" class="textarea-input"></textarea>
+      <button @click="generateRecipe" class="generate-button">Generate Recipe</button>
     </div>
-    <div v-if="finishedGenerating">
+    <div v-if="displayError" class="error-message">
+      <p>Something went wrong. Please check your input and make sure it contains food ingredients only.</p>
+    </div>
+    <div v-else-if="finishedGenerating" class="recipe-section">
       <h2>Generated Recipe: {{ recipe.title }}</h2>
-      <div v-if="imageUrl">
-        <img :src="imageUrl" alt="Image" width="30%"/>
+      <div v-if="imageUrl" class="image-container">
+        <img :src="imageUrl" alt="Image" class="recipe-image"/>
       </div>
       <h3>Instructions:</h3>
       <p>{{ recipe.instructions }}</p>
       <h3>Ingredients:</h3>
-      <ul>
-        <li v-for="(ingredientItem, index) in recipe.recipeIngredients" :key="index">
+      <ul class="ingredient-list">
+        <li v-for="(ingredientItem, index) in recipe.recipeIngredients" :key="index" class="ingredient-item">
           {{ ingredientItem.ingredient.ingredient }}: {{ ingredientItem.weight }}, {{ ingredientItem.volume }}
         </li>
       </ul>
-      <p v-if="recipe.recipePrice">Estimated time to complete the recipe, calories and price:</p>
-      <ul>
-        <li v-if="recipe.recipeTime">Time: {{ recipe.recipeTime }}</li>
-        <li v-if="recipe.recipeCalories">Calories: {{ recipe.recipeCalories }}</li>
-        <li v-if="recipe.recipePrice">Price: €{{ recipe.recipePrice }}</li>
-      </ul>
-      <br>
-      <button @click="saveRecipe">Save Recipe</button>
+      <div v-if="recipe.recipePrice" class="additional-info">
+        <p>Estimated time to complete the recipe, calories and price:</p>
+        <ul>
+          <li v-if="recipe.recipeTime">Time: {{ recipe.recipeTime }}</li>
+          <li v-if="recipe.recipeCalories">Calories: {{ recipe.recipeCalories }}</li>
+          <li v-if="recipe.recipePrice">Price: €{{ recipe.recipePrice }}</li>
+        </ul>
+      </div>
+      <button @click="saveRecipe" class="save-button">Save Recipe</button>
     </div>
     <div v-else>
-      <div v-if="startedGenerating">
+      <div v-if="startedGenerating" class="loading-section">
         <h3>Generating recipe with {{ ingredientInput }}...</h3>
         <p>{{ loadingText }}</p>
+        <i class="fas fa-cookie fa-7x fa-spin" style="color: #e6b18e; margin-top: 5rem"></i>
       </div>
     </div>
   </div>
@@ -61,6 +65,7 @@ export default {
       startedGenerating: false,
       finishedGenerating: false,
       loadingText: '',
+      displayError: false,
     };
   },
   methods: {
@@ -71,6 +76,7 @@ export default {
       this.ingredientInput = sanitizedValue;
     },
     async generateRecipe() {
+      this.displayError = false;
       this.startedGenerating = true;
       this.loadingText += 'Creating recipe and adding ingredients...\n';
       // Split ingredientInput into separate lines
@@ -78,8 +84,13 @@ export default {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('jwtToken')}`
         },
+      }).catch(error => {
+        console.error('Error:', error);
       });
       console.log(generatedResponse.data);
+      if (generatedResponse.data.toLowerCase().includes('sorry') || generatedResponse.data.toLowerCase().includes('appropriate')) {
+        this.displayError = true;
+      }
 
       const parts = generatedResponse.data.split('{separator}');
 
@@ -130,7 +141,7 @@ export default {
               }
             })
                 .then(async response => {
-                  console.log("RESPONSE: "+ JSON.stringify(response.data));
+                  console.log("RESPONSE: " + JSON.stringify(response.data));
                   if (response.data) {
                     // If ingredient already exists, use its ID
                     const existingIngredientId = response.data.id;
@@ -172,17 +183,11 @@ export default {
                   console.error('Error searching ingredients:', error);
                 });
 
-
-            // this.recipe.recipeIngredients.push({
-            //   id: null,
-            //   ingredient: {id: ingredientId, ingredient: ingredientName},
-            //   weight: weight,
-            // });
           }
         }
       }
       this.loadingText += 'Generating image...\n';
-      //await this.getImage();
+      await this.getImage();
       this.loadingText += 'Converting measurements...\n';
       await this.getVolume();
       this.finishedGenerating = true;
@@ -196,6 +201,8 @@ export default {
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('jwtToken')}`
           },
+        }).catch(error => {
+          console.error('Error:', error);
         });
         this.promptGramsToCups = "";
         ingredient.volume = volumeResponse.data;
@@ -214,31 +221,35 @@ export default {
         prompt += `- ${ingredient.ingredient.ingredient}\n`;
       });
       console.log(JSON.stringify(prompt));
+        const imageResponse = await axios.get(`/api/recipe/image?prompt=${encodeURIComponent(prompt)}`, {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('jwtToken')}`
+          },
+        }).catch(error => {
+          console.error('Error:', error);
 
-      const imageResponse = await axios.get(`/api/recipe/image?prompt=${encodeURIComponent(prompt)}`, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('jwtToken')}`
-        },
-      });
+        });
 
-      this.imageUrl = imageResponse.data;
-      console.log(this.imageUrl);
-      await this.getImageFromUrl(this.imageUrl);
+        this.imageUrl = imageResponse.data;
+        console.log(this.imageUrl);
+        await this.getImageFromUrl(this.imageUrl);
     },
     async getImageFromUrl() {
-      await axios.get(`/api/recipe/saveUrlImage?imageUrl=${encodeURIComponent(this.imageUrl)}`, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('jwtToken')}`
-        },
-      })
-          .then(response => {
-            console.log('Image added successfully');
-            console.log(response.data);
-            this.recipe.image = response.data;
-          })
-          .catch(error => {
-            console.error('Error adding image:', error);
-          });
+      if (this.imageUrl) {
+        await axios.get(`/api/recipe/saveUrlImage?imageUrl=${encodeURIComponent(this.imageUrl)}`, {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('jwtToken')}`
+          },
+        })
+            .then(response => {
+              console.log('Image added successfully');
+              console.log(response.data);
+              this.recipe.image = response.data;
+            })
+            .catch(error => {
+              console.error('Error adding image:', error);
+            });
+      }
     },
     async saveRecipe() {
       //await this.getImageFromUrl(this.imageUrl);
@@ -259,8 +270,14 @@ export default {
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('jwtToken')}`
           },
+        }).catch(error => {
+          console.error('Error:', error);
         });
+
         const recipeId = response.data;
+        localStorage.setItem('generated', '1');
+        localStorage.setItem('useUrl', '1');
+        localStorage.setItem('imageUrl', this.imageUrl);
         await this.$router.push({name: 'recipe', params: {recipeId: recipeId}});
       } catch (error) {
         this.errorMessage = error.response.data.message || 'An error occurred while saving the recipe.';
@@ -271,5 +288,120 @@ export default {
 </script>
 
 <style scoped>
+.generate-recipe-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+  max-width: 800px;
+  margin: 0 auto;
+  background-color: #f9f9f9;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
 
+.input-section {
+  text-align: center;
+  width: 100%;
+}
+
+.input-section h2 {
+  margin-bottom: 10px;
+  font-size: 1.5em;
+  color: #333;
+}
+
+.textarea-input {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  font-size: 1em;
+  margin-bottom: 10px;
+}
+
+.generate-button {
+  padding: 10px 20px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.generate-button:hover {
+  background-color: #0056b3;
+}
+
+.error-message {
+  color: red;
+  font-size: 1.1em;
+  margin-top: 20px;
+}
+
+.recipe-section {
+  width: 100%;
+  text-align: center;
+}
+
+.recipe-section h2 {
+  font-size: 2em;
+  color: #333;
+  margin-bottom: 20px;
+}
+
+.image-container {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.recipe-image {
+  max-width: 30%;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.ingredient-list {
+  list-style: none;
+  padding: 0;
+}
+
+.ingredient-item {
+  margin-bottom: 10px;
+  font-size: 1.1em;
+}
+
+.additional-info {
+  margin-top: 20px;
+  font-size: 1.1em;
+}
+
+.save-button {
+  padding: 10px 20px;
+  background-color: #28a745;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.save-button:hover {
+  background-color: #218838;
+}
+
+.loading-section {
+  text-align: center;
+  margin-top: 50px;
+}
+
+.loading-section h3 {
+  font-size: 1.5em;
+  color: #333;
+}
+
+.loading-section p {
+  font-size: 1.2em;
+  color: #666;
+}
 </style>

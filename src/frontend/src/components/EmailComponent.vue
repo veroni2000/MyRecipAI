@@ -1,20 +1,22 @@
 <template>
-  <div class="row">
+  <div class="justify-content-center">
     <h2 align="center">Enter your email to reset password</h2>
 
-    <div class="col-sm-6">
+    <div class="col-sm-6 mx-auto">
       <form @submit.prevent="sendCode">
         <div class="form-group">
           <label for="loginEmailInput">Email</label>
           <input type="email" v-model="email" class="form-control" id="loginEmailInput" placeholder="Enter email">
         </div>
+        <br>
         <div v-if="errorMessage" class="alert alert-danger" role="alert">
           {{ errorMessage }}
         </div>
-        <br>
-        <button type="submit" class="btn btn-primary">Send code</button>
+        <button type="submit" class="btn btn-primary" :disabled="!email">Send code</button>
       </form>
-      <router-link :to="{ name: 'login' }">Login</router-link>
+      <div class="text-center">
+        <p>No need to reset? <router-link :to="{ name: 'login' }">Sign in</router-link></p>
+      </div>
     </div>
   </div>
 </template>
@@ -38,7 +40,6 @@ export default {
       axios.post("/api/public/reset/email", { email: this.email })
           .then(response => {
             if (response.data) {
-              alert("Password reset code was sent");
               localStorage.setItem('email', this.email)
               this.$router.push({ name: 'reset' });
             }

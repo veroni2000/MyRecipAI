@@ -1,18 +1,18 @@
 <template>
-  <div class="row">
+  <div class="justify-content-center">
     <h2 align="center">Enter the code sent to your email</h2>
 
-    <div class="col-sm-6">
+    <div class="col-sm-6 mx-auto">
       <form @submit.prevent="verifyUser">
         <div class="form-group">
-          <label for="verofyCodeInput">Code</label>
-          <input type="text" v-model="user.code" class="form-control" id="verifyCodeInput" placeholder="Enter code">
+          <label for="verifyCodeInput">Code</label>
+          <input type="text" v-model="user.code" class="form-control" id="verifyCodeInput" @input="validateInput" placeholder="Enter code">
         </div>
+        <br>
         <div v-if="errorMessage" class="alert alert-danger" role="alert">
           {{ errorMessage }}
         </div>
-        <br>
-        <button type="submit" class="btn btn-primary">Submit</button>
+        <button type="submit" class="btn btn-primary" :disabled="!user.code">Submit</button>
       </form>
     </div>
   </div>
@@ -36,6 +36,9 @@ export default {
   methods: {
     verifyUser() {
       this.errorMessage = null;
+      if(!localStorage.getItem('email'))
+        this.$router.push({ name: 'login' });
+
 
       axios.post("/api/public/verify", this.user)
           .then(response => {
@@ -55,6 +58,10 @@ export default {
               this.errorMessage = "An unexpected error occurred. Please try again later.";
             }
           });
+    },
+    validateInput() {
+      // Remove non-numeric characters from the input value
+      this.user.code = this.user.code.replace(/\D/g, '');
     }
   }
 }

@@ -97,6 +97,9 @@ public class RecipeService {
         if (recipeDTO.getRecipePrice() != null){
             recipe.setRecipePrice(recipeDTO.getRecipePrice());
         }
+        if (recipeDTO.getImage() != null){
+            recipe.setImage(recipeDTO.getImage());
+        }
         recipeRepository.save(recipe);
     }
 
@@ -116,6 +119,17 @@ public class RecipeService {
     public List<RecipeDTO> findRecipesByUser(Long userId) {
         ModelMapper modelMapper = new ModelMapper();
         List<Recipe> recipes = recipeRepository.findAllByUserId(userId);
+        List<RecipeDTO> recipeDTOList = new ArrayList<>();
+        for (Recipe recipe : recipes) {
+            RecipeDTO dto = modelMapper.map(recipe, RecipeDTO.class);
+            dto.setCreatedBy(modelMapper.map(recipe.getUser(), UserWithoutPasswordDTO.class));
+            recipeDTOList.add(dto);
+        }
+        return recipeDTOList;
+    }
+    public List<RecipeDTO> getAllRecipes() {
+        ModelMapper modelMapper = new ModelMapper();
+        List<Recipe> recipes = recipeRepository.getAllRecipesReversed();
         List<RecipeDTO> recipeDTOList = new ArrayList<>();
         for (Recipe recipe : recipes) {
             RecipeDTO dto = modelMapper.map(recipe, RecipeDTO.class);

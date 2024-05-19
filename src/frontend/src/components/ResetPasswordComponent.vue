@@ -1,8 +1,8 @@
 <template>
-  <div class="row">
+  <div class="justify-content-center">
     <h2 align="center">Enter the code sent to your email and change your password</h2>
 
-    <div class="col-sm-6">
+    <div class="col-sm-6 mx-auto">
       <form @submit.prevent="resetPassword">
         <div class="form-group">
           <label for="codeInput">Code</label>
@@ -16,13 +16,15 @@
           <label for="repeatPasswordInput">Repeat Password</label>
           <input type="password" v-model="repeatPassword" class="form-control" id="repeatPasswordInput" placeholder="Repeat password">
         </div>
+        <br>
         <div v-if="errorMessage" class="alert alert-danger" role="alert">
           {{ errorMessage }}
         </div>
-        <br>
-        <button type="submit" class="btn btn-primary">Submit</button>
+        <button type="submit" class="btn btn-primary" :disabled="!code||!password||!repeatPassword">Submit</button>
       </form>
-      <router-link :to="{ name: 'login' }">Login</router-link>
+      <div class="text-center">
+        <p>No need to change password? <router-link :to="{ name: 'login' }">Sign in</router-link></p>
+      </div>
     </div>
   </div>
 </template>
@@ -53,7 +55,6 @@ export default {
       })
           .then(response => {
             if (response.data) {
-              alert("Password changed successfully");
               this.$router.push({ name: 'login' });
             }
           })

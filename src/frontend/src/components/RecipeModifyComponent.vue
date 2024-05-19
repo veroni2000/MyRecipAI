@@ -1,12 +1,15 @@
 <template>
 
-  <div v-if="recipe.image">
-    <h2>Recipe successfully updated!</h2>
-    <p>Generated image:</p>
-    <div class="recipe-details">
-      <div v-if="recipe.image">
-        <img :src="imageUrl" alt="Image"/>
-      </div>
+  <h2 v-if="recipe.recipePrice==='none'">Note that some calculations are missing due to inappropriate input. Please
+    consider editing the recipe.</h2>
+  <h2 v-else-if="recipe.recipePrice">Recipe successfully updated!</h2>
+  <p v-if="errorMessage">{{ errorMessage }}</p>
+  <div class="recipe-details">
+    <div v-if="recipe.image">
+      <p>Generated image:</p>
+      <img :src="imageUrl" alt="Image"/>
+    </div>
+    <div v-if="recipe.recipePrice">
       <p>Calculated measurements for ingredients, so the recipe will be available in both weigh and volume:</p>
       <ul>
         <li v-for="(ingredientItem, index) in recipe.recipeIngredients" :key="index">
@@ -19,10 +22,16 @@
         <li v-if="recipe.recipeCalories">Estimated Calories: {{ recipe.recipeCalories }}</li>
         <li v-if="recipe.recipePrice">Estimated Price: €{{ recipe.recipePrice }}</li>
       </ul>
+      <router-link :to="'/recipe/' + recipe.id" onclick="window.location.href=''">Go to recipe</router-link>
     </div>
-  </div>
-  <div v-else class="loading">
-    <p>Loading...</p>
+    <div v-else-if="finished">
+      <p>There was a problem with some calculations. The modification will be finished automatically later.</p>
+      <!--      <router-link :to="'/recipe/' + recipe.id" onclick="window.location.href=''">Go to recipe</router-link>-->
+      <router-link :to="'/recipe/' + recipe.id">Go to recipe</router-link>
+    </div>
+    <div v-else class="loading">
+      <i class="fas fa-cookie-bite fa-7x fa-spin" style="color: #e6b18e; margin-top: 5rem"></i>
+    </div>
   </div>
 
 </template>
@@ -63,6 +72,9 @@ export default {
       prompt: "",
       promptGramsToCups: "",
       promptCupsToGrams: "",
+      displayError: false,
+      finished: false,
+      errorMessage: '',
     };
   },
   mounted() {
@@ -86,6 +98,8 @@ export default {
             if (this.recipe.image === null) {
               await this.getImage();
               console.log("Recipe image url: " + this.imageUrl);
+              localStorage.setItem('useUrl', '1');
+              localStorage.setItem('imageUrl', this.imageUrl);
 
               await this.getImageFromUrl();
 
@@ -113,6 +127,8 @@ export default {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('jwtToken')}`
         },
+      }).catch(error => {
+        console.error('Error:', error);
       });
 
       // Update recipe.image with the generated image
@@ -120,19 +136,22 @@ export default {
       console.log(this.imageUrl);
     },
     async getImageFromUrl() {
-      await axios.get(`/api/recipe/saveUrlImage?imageUrl=${encodeURIComponent(this.imageUrl)}`, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('jwtToken')}`
-        },
-      })
-          .then(async response => {
-            console.log('Image added successfully');
-            console.log(response.data);
-            this.recipe.image = response.data;
-          })
-          .catch(error => {
-            console.error('Error adding image:', error);
-          });
+      if (this.imageUrl) {
+        await axios.get(`/api/recipe/saveUrlImage?imageUrl=${encodeURIComponent(this.imageUrl)}`, {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('jwtToken')}`
+          },
+        })
+            .then(async response => {
+              console.log('Image added successfully');
+              console.log(response.data);
+              this.recipe.image = response.data;
+            })
+            .catch(error => {
+              this.recipe.image = '';
+              console.error('Error adding image:', error);
+            });
+      }
     },
     async loadImage(imageName) {
       this.imageUrl = await ImageService.getImageUrl(imageName);
@@ -148,19 +167,28 @@ export default {
             },
           });
           this.promptGramsToCups = "";
-          ingredient.volume = volumeResponse.data;
-          console.log(ingredient.volume);
+          if (!volumeResponse.data.toLowerCase().includes('sorry') || !volumeResponse.data.toLowerCase().includes('appropriate')
+              || !volumeResponse.data.toLowerCase().includes('cannot') || !volumeResponse.data.toLowerCase().includes('assist')
+              || !volumeResponse.data.toLowerCase().includes('n/a')) {
+            ingredient.volume = volumeResponse.data;
+            this.displayError = true;
+            console.log(ingredient.volume);
+          }
         }
-        if (this.recipe.defaultMetric == 'volume') {
-          for (const ingredient of this.recipe.recipeIngredients) {
-            this.promptCupsToGrams = `${ingredient.ingredient.ingredient}: ${ingredient.volume}\n`;
-            const weightResponse = await axios.get(`/api/public/cupsToGrams?msg=${this.promptCupsToGrams}`, {
-              headers: {
-                'Authorization': `Bearer ${localStorage.getItem('jwtToken')}`
-              },
-            });
-            this.promptCupsToGrams = "";
+      } else {
+        for (const ingredient of this.recipe.recipeIngredients) {
+          this.promptCupsToGrams = `${ingredient.ingredient.ingredient}: ${ingredient.volume}\n`;
+          const weightResponse = await axios.get(`/api/public/cupsToGrams?msg=${this.promptCupsToGrams}`, {
+            headers: {
+              'Authorization': `Bearer ${localStorage.getItem('jwtToken')}`
+            },
+          });
+          this.promptCupsToGrams = "";
+          if (!weightResponse.data.toLowerCase().includes('sorry') || !weightResponse.data.toLowerCase().includes('appropriate')
+              || !weightResponse.data.toLowerCase().includes('cannot') || !weightResponse.data.toLowerCase().includes('assist')
+              || !weightResponse.data.toLowerCase().includes('n/a')) {
             ingredient.weight = weightResponse.data;
+            this.displayError = true;
             console.log(ingredient.weight);
           }
         }
@@ -169,39 +197,52 @@ export default {
     async getTimeCalPrice() {
       console.log(JSON.stringify(this.prompt));
 
-      const timeCalPriceResponse = await axios.get(`/api/recipe/timeCalPrice?prompt=${encodeURIComponent(this.prompt)}`, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('jwtToken')}`
-        },
-      });
+      try {
+        const timeCalPriceResponse = await axios.get(`/api/recipe/timeCalPrice?prompt=${encodeURIComponent(this.prompt)}`, {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('jwtToken')}`
+          },
+        }).catch(error => {
+          console.error('Error:', error);
+        });
 
-      console.log(timeCalPriceResponse.data);
+        if (timeCalPriceResponse.data.toLowerCase().includes('sorry') || timeCalPriceResponse.data.toLowerCase().includes('appropriate')
+            || timeCalPriceResponse.data.toLowerCase().includes('cannot') || timeCalPriceResponse.data.toLowerCase().includes('assist')
+            || timeCalPriceResponse.data.toLowerCase().includes('n/a')) {
+          this.displayError = true;
+          this.recipe.recipeTime = 'none';
+          this.recipe.recipePrice = 'none';
+          this.recipe.recipeCalories = 'none';
+        }
 
-      const parts = timeCalPriceResponse.data.split(';');
+        console.log(timeCalPriceResponse.data);
 
-      const timePart = parts.find(part => part.includes('Time'));
-      const pricePart = parts.find(part => part.includes('Price'));
-      const calPart = parts.find(part => part.includes('Calories'));
+        const parts = timeCalPriceResponse.data.split(';');
 
-      if (timePart) {
-        // Extract the time portion after 'Time'
-        this.recipe.recipeTime = timePart.split('Time:')[1].trim();
-        console.log(this.recipe.recipeTime);
-      }
-      if (pricePart) {
-        this.recipe.recipePrice = parseFloat(pricePart.split('Price:')[1].trim());
-        console.log(this.recipe.recipePrice);
-      }
-      if (calPart) {
-        this.recipe.recipeCalories = parseInt(calPart.split('Calories:')[1].trim());
-        console.log(this.recipe.recipeCalories);
+        const timePart = parts.find(part => part.includes('Time'));
+        const pricePart = parts.find(part => part.includes('Price'));
+        const calPart = parts.find(part => part.includes('Calories'));
+
+        if (timePart) {
+          // Extract the time portion after 'Time'
+          this.recipe.recipeTime = timePart.split('Time:')[1].trim();
+          console.log(this.recipe.recipeTime);
+        }
+        if (pricePart) {
+          this.recipe.recipePrice = parseFloat(pricePart.split('Price:')[1].trim());
+          console.log(this.recipe.recipePrice);
+        }
+        if (calPart) {
+          this.recipe.recipeCalories = parseInt(calPart.split('Calories:')[1].trim());
+          console.log(this.recipe.recipeCalories);
+        }
+      } catch (error) {
+        this.recipe.recipeTime = '';
+        this.recipe.recipeCalories = '';
+        this.recipe.recipePrice = '';
       }
     },
     async updateRecipe() {
-      if (this.recipe.image === null) {
-        //await this.getImage();
-        // window.location.href='';
-      }
       await this.getMeasurements();
       await this.getTimeCalPrice();
 
@@ -217,6 +258,7 @@ export default {
           .catch(error => {
             console.error('Error updating recipe:', error);
           });
+      this.finished = true;
     },
   }
 }

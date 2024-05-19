@@ -124,6 +124,10 @@ public class UserService {
             validator.passwordValidate(userEditDTO.getPassword());
             user.setPassword(passwordEncoder.encode(userEditDTO.getPassword()));
         }
+
+        if (userEditDTO.getImage() != null){
+            user.setImage(userEditDTO.getImage());
+        }
     }
     public EmailDTO sendResetEmail(EmailDTO emailDTO) {
         Optional<User> u = repository.findByEmail(emailDTO.getEmail());
