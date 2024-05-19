@@ -2,6 +2,7 @@ package com.example.myrecipai.repository;
 
 import com.example.myrecipai.model.Recipe;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -11,4 +12,6 @@ import java.util.Optional;
 public interface RecipeRepository  extends JpaRepository<Recipe, Long> {
     List<Recipe> findAllByUserId(Long user);
     Optional<Recipe> findById(Long id);
+    @Query("select r from Recipe r order by r.id desc")
+    List<Recipe> getAllRecipesReversed();
 }

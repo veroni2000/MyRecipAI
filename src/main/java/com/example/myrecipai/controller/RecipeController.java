@@ -47,6 +47,10 @@ public class RecipeController {
                                                 @RequestBody RecipeDTO recipeDTO){
         return recipeService.editRecipeById(recipeId, recipeDTO);
     }
+    @GetMapping("/all")
+    public List<RecipeDTO> getAllRecipes(){
+        return recipeService.getAllRecipes();
+    }
     @GetMapping("/byUser")
     public List<RecipeDTO> findRecipesByUser(@RequestParam Long userId){
         return recipeService.findRecipesByUser(userId);
