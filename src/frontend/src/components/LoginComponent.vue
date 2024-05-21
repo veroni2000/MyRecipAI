@@ -1,5 +1,5 @@
 <template>
-  <div class="justify-content-center">
+  <div class="login">
     <h2 align="center">User Login</h2>
     <div class="col-sm-6 mx-auto">
       <form @submit.prevent="loginUser">
@@ -105,4 +105,14 @@ export default {
   }
 };
 </script>
+<style>
+.login {
+  max-width: 60%;
+  margin: 0 auto;
+  padding: 20px;
+  background-color: #f9f9f9;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+</style>
 

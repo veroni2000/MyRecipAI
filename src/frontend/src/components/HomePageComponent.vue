@@ -11,15 +11,18 @@
             <h3>{{ recipe.title }}<MDBBadge v-if="recipe.aiGenerated" color="primary">AI</MDBBadge></h3>
           </div>
         </div>
-        <div class="recipe-details">
-          <strong>Ingredients:</strong>
-          <ul>
-            <li v-for="(ingredientItem, index) in recipe.recipeIngredients" :key="index">
-              {{ ingredientItem.ingredient.ingredient }}
-            </li>
-          </ul>
-        </div>
       </router-link>
+      <div class="recipe-details">
+<!--        <strong>Ingredients:</strong>-->
+        <button @click="toggleIngredients(recipe.id)" class="toggle-ingredients-btn">
+          {{ expandedRecipes.includes(recipe.id) ? 'Hide Ingredients' : 'Show Ingredients' }}
+        </button>
+        <ul v-if="expandedRecipes.includes(recipe.id)">
+          <li v-for="(ingredientItem, index) in recipe.recipeIngredients" :key="index">
+            {{ ingredientItem.ingredient.ingredient }}
+          </li>
+        </ul>
+      </div>
     </div>
   </div>
 </template>
@@ -37,6 +40,7 @@ export default {
     return {
       msg: '',
       recipes: [],
+      expandedRecipes: [] // Track expanded recipes by their IDs
     };
   },
   mounted() {
@@ -53,6 +57,14 @@ export default {
             console.error('Error fetching recipes:', error);
           });
     },
+    toggleIngredients(recipeId) {
+      const index = this.expandedRecipes.indexOf(recipeId);
+      if (index > -1) {
+        this.expandedRecipes.splice(index, 1);
+      } else {
+        this.expandedRecipes.push(recipeId);
+      }
+    }
   }
 };
 </script>
@@ -118,6 +130,20 @@ export default {
   display: block;
   margin-bottom: 10px;
   font-size: 1.2em;
+}
+
+.toggle-ingredients-btn {
+  border: none;
+  padding: 5px 10px;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-bottom: 10px;
+}
+
+.toggle-ingredients-btn:hover {
+  /*background: rgb(43, 43, 44);*/
+  background: #729874;
+  color: #fff;
 }
 
 .recipe-details ul {

@@ -1,5 +1,5 @@
 <template>
-  <div class="justify-content-center">
+  <div class="register">
     <h2 align="center">User Registration</h2>
 
     <div class="col-sm-6 mx-auto">
@@ -31,7 +31,6 @@
         <div v-if="errorMessage" class="alert alert-danger" role="alert">
           {{ errorMessage }}
         </div>
-        <br>
         <MDBBtn type="submit" class="btn btn-primary"
                 :disabled="!user.email||!user.firstName||!user.lastName||!user.password">Register
         </MDBBtn>
@@ -114,3 +113,14 @@ export default {
   }
 };
 </script>
+
+<style>
+.register {
+  max-width: 60%;
+  margin: 0 auto;
+  padding: 20px;
+  background-color: #f9f9f9;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+</style>

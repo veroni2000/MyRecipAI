@@ -16,7 +16,7 @@
         </div>
         <div class="profile-actions">
           <div v-if="isCurrentUser" class="edit-profile-link">
-            <router-link to="/user/edit">Edit profile</router-link>
+            <router-link to="/user/edit" v-if="isCurrentUser"><i class="fas fa-edit"></i>edit profile</router-link>
           </div>
           <div v-else>
             <button v-if="showFollow" @click="followUser" class="follow-button">Follow</button>
@@ -130,7 +130,7 @@ export default {
       axiosInstance.post(`/follow`, {"followedId": this.$route.params.userId, "followingId": localStorage.getItem('id')})
           .then(() => {
             this.showFollow = false;
-            this.fetchFollowCounts(); // Update follower count
+            this.getAllFollowingUser(); // Update follower count
           })
           .catch(error => {
             console.error('Error following:', error);
@@ -140,7 +140,7 @@ export default {
       axiosInstance.delete(`/follow`, {data:{"followedId": this.$route.params.userId, "followingId": localStorage.getItem('id')}})
           .then(() => {
             this.showFollow = true;
-            this.fetchFollowCounts(); // Update follower count
+            this.getAllFollowingUser(); // Update follower count
           })
           .catch(error => {
             console.error('Error unfollowing:', error);

@@ -1,18 +1,18 @@
 <template>
+  <input
+      type="text"
+      v-model="ingredient"
+      @input="handleInput"
+      placeholder="Enter ingredient"
+      class="form-control"
+  >
   <div class="search-container">
-    <input
-        type="text"
-        v-model="ingredient"
-        @input="handleInput"
-        placeholder="Enter ingredient"
-        class="form-control"
-    >
     <ul v-if="showResults" class="search-results">
-      <li v-for="result in results" :key="result.id" @click="selectIngredient(result)">
-        {{ result.ingredient }}
-      </li>
       <li v-if="showAddButton" @click="addNewIngredient">
         Add "{{ ingredient }}"
+      </li>
+      <li v-for="result in results" :key="result.id" @click="selectIngredient(result)">
+        {{ result.ingredient }}
       </li>
     </ul>
   </div>
@@ -92,17 +92,6 @@ export default {
 </script>
 
 <style scoped>
-.search-container {
-  position: relative;
-}
-
-.search-container input {
-  width: 100%;
-  padding: 10px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-}
-
 .search-results {
   position: absolute;
   top: 100%;

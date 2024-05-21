@@ -2,6 +2,7 @@ package com.example.myrecipai.controller;
 
 import com.example.myrecipai.dto.RecipeDTO;
 import com.example.myrecipai.service.ChatGptService;
+import com.example.myrecipai.service.LikeService;
 import com.example.myrecipai.service.RecipeService;
 import com.theokanning.openai.assistants.Assistant;
 import com.theokanning.openai.service.OpenAiService;
@@ -31,6 +32,8 @@ public class PublicController {
     private ChatGptService chatGptService;
     @Autowired
     private RecipeService recipeService;
+    @Autowired
+    private LikeService likeService;
     @Value("${openai.api.key}")
     private String openaiApiKey;
 
@@ -44,7 +47,7 @@ public class PublicController {
     private String imageDirectory;
 
     @GetMapping("/assistant")
-    public Assistant assistant(@RequestParam String assistantId){
+    public Assistant assistant(@RequestParam String assistantId) {
         OpenAiService openAiService = new OpenAiService(openaiApiKey);
         return openAiService.retrieveAssistant(assistantId);
     }
@@ -78,12 +81,19 @@ public class PublicController {
     public void downloadImage(@RequestParam(name = "file") String name, HttpServletResponse response) throws IOException {
         recipeService.downloadImage(name, response);
     }
+
     @GetMapping("/recipes/all")
-    public List<RecipeDTO> getAllRecipes(){
+    public List<RecipeDTO> getAllRecipes() {
         return recipeService.getAllRecipes();
     }
+
     @GetMapping("/recipe/{recipeId}")
-    public RecipeDTO findRecipe(@PathVariable Long recipeId){
+    public RecipeDTO findRecipe(@PathVariable Long recipeId) {
         return recipeService.findRecipeById(recipeId);
+    }
+
+    @GetMapping("/likes")
+    public Long getAllLikesByRecipeId(@RequestParam Long recipeId) {
+        return likeService.getAllLikesByRecipeId(recipeId);
     }
 }

@@ -1,5 +1,5 @@
 <template>
-  <div class="justify-content-center">
+  <div class="add-recipe">
     <h2 align="center">Add Recipe</h2>
 
     <div class="col-sm-6 mx-auto">
@@ -7,13 +7,13 @@
         <div class="form-group">
           <label for="recipeTitleInput">Title</label>
           <br>
-          <MDBInput type="text" v-model="recipe.title" class="form-control" id="recipeTitleInput" placeholder="Enter recipe title"/>
+          <input type="text" v-model="recipe.title" class="form-control" id="recipeTitleInput" placeholder="Enter recipe title"/>
         </div>
 
         <div class="form-group">
           <label for="recipeContentInput">Instructions</label>
           <br>
-          <MDBTextarea v-model="recipe.instructions" class="form-control" id="recipeContentInput" rows="5" placeholder="Enter recipe instructions" @keydown.enter.prevent="handleEnter"/>
+          <textarea v-model="recipe.instructions" class="form-control" id="recipeContentInput" rows="5" placeholder="Enter recipe instructions" @keydown.enter.prevent="handleEnter"/>
         </div>
 
         <div class="form-group">
@@ -29,6 +29,7 @@
 
         <div class="form-group" v-for="(ingredientItem, index) in recipe.recipeIngredients" :key="index">
           <label :for="'ingredientInput-' + index">Ingredient {{ index + 1 }}</label>
+          <i class="fas fa-trash-can" id="remove-ingredient" @click="removeIngredient(index)" v-if="index> 0" style="margin-left: 5px"></i>
           <div class="input-group">
             <!-- Add ingredient component -->
             <add-ingredient-component
@@ -36,6 +37,7 @@
                 class="form-control"
                 :id="'ingredientInput-' + index"
                 @ingredient-selected="(ingredient) => handleIngredientSelected(ingredient, index)"
+                style="margin-bottom: 10px"
             ></add-ingredient-component>
 
             <!-- Input for weight -->
@@ -47,16 +49,13 @@
                 :placeholder="isWeightMode ? 'Enter weight' : 'Enter volume'"
                 @input="validateWeightOrVolume(ingredientItem, index)"
             >
-            <!-- Button to remove ingredient -->
-            <button type="button" class="btn btn-outline-secondary" @click="removeIngredient(index)" v-if="index > 0">-</button>
           </div>
-
             <div class="input-group-append">
               <!-- Button to add ingredient -->
-              <button type="button" class="btn btn-outline-secondary" @click="addIngredient()" v-if="index === recipe.recipeIngredients.length - 1">+</button>
+              <i class="fas fa-circle-plus fa-2x" id="add-ingredient" @click="addIngredient()" v-if="index === recipe.recipeIngredients.length - 1" style="margin-top: 5px; margin-bottom: 10px;color: #aec1b5"></i>
+<!--              <button type="button" class="btn btn-outline-secondary" @click="addIngredient()" v-if="index === recipe.recipeIngredients.length - 1">+</button>-->
             </div>
           </div>
-        <br>
         <button type="submit" class="btn btn-primary" :disabled="!isFormValid">Create recipe</button>
       </form>
     </div>
@@ -67,9 +66,7 @@
 import axios from 'axios';
 import AddIngredientComponent from "@/components/AddIngredientComponent";
 import {
-  MDBInput,
   MDBSwitch,
-  MDBTextarea,
 } from "mdb-vue-ui-kit";
 
 export default {
@@ -77,8 +74,6 @@ export default {
   components: {
     AddIngredientComponent,
     MDBSwitch,
-    MDBInput,
-    MDBTextarea
   },
   data() {
     return {
@@ -123,7 +118,6 @@ export default {
       this.recipe.recipeIngredients.splice(index, 1);
     },
     async saveRecipe() {
-        await this.fileUpload();
         console.log(JSON.stringify(this.recipe));
         const response = await axios.post('/api/recipe', {
           title: this.recipe.title,
@@ -194,8 +188,22 @@ export default {
   display: inline-flex;
   align-items: center;
 }
-#measurementSwitch:disabled{
-  background-color: aquamarine;
+
+.add-recipe {
+  max-width: 60%;
+  margin: 0 auto;
+  padding: 20px;
+  background-color: #f9f9f9;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
+#remove-ingredient {
+  margin-top: 10px;
+  margin-left: 5px;
+}
+
+#remove-ingredient:hover, #add-ingredient:hover {
+  transform: translateY(-3px);
+}
 </style>

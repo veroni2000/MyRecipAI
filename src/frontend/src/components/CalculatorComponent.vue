@@ -1,5 +1,5 @@
 <template>
-  <div className="justify-content-center">
+  <div class="calculator">
     <h2>Conversion Calculator</h2>
     <div className="col-sm-6 mx-auto">
       <div className="form-group">
@@ -48,9 +48,13 @@
 
 <script>
 import axios from 'axios';
+import {MDBSpinner} from "mdb-vue-ui-kit";
 
 export default {
   name: "CalculatorComponent",
+  components: {
+    MDBSpinner,
+  },
   data() {
     return {
       conversionType: "gramsToCups",
@@ -107,4 +111,12 @@ export default {
 </script>
 
 <style scoped>
+.calculator {
+  max-width: 60%;
+  margin: 0 auto;
+  padding: 20px;
+  background-color: #f9f9f9;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
 </style>

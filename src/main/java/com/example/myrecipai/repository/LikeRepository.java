@@ -15,5 +15,5 @@ public interface LikeRepository extends JpaRepository<Like, Long> {
 
     Like findByRecipeAndUser(Recipe recipe, User user);
 
-    List<Like> findAllLikesByRecipeId(Long id);
+    Long countByRecipeId(Long id);
 }

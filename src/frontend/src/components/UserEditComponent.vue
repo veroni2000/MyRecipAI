@@ -64,7 +64,7 @@ export default {
           .then(response => {
             // Optionally handle success response
             console.log('User profile updated:', response.data);
-            this.$router.push({name: 'user', params: {userId: localStorage.getItem('id')}});
+            window.location.href = `/user/${localStorage.getItem('id')}`;
           })
           .catch(error => {
             console.error('Error updating user profile:', error);

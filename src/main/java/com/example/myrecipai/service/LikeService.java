@@ -66,4 +66,8 @@ public class LikeService {
         Optional<Like> like = likeRepository.findByRecipeIdAndUserId(recipeId, user.getId());
         return like.isPresent();
     }
+
+    public Long getAllLikesByRecipeId(Long recipeId) {
+        return likeRepository.countByRecipeId(recipeId);
+    }
 }

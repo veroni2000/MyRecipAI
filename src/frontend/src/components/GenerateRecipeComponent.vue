@@ -3,7 +3,7 @@
     <div v-if="!startedGenerating" class="input-section">
       <h2>Enter Ingredients:</h2>
       <textarea id="ingredients" v-model="ingredientInput" rows="4" @input="sanitizeInput" class="textarea-input"></textarea>
-      <button @click="generateRecipe" class="generate-button">Generate Recipe</button>
+      <button type="submit" @click="generateRecipe" :disabled="!ingredientInput" class="btn btn-primary" id="generate-button">Generate Recipe</button>
     </div>
     <div v-if="displayError" class="error-message">
       <p>Something went wrong. Please check your input and make sure it contains food ingredients only.</p>
@@ -320,7 +320,7 @@ export default {
   margin-bottom: 10px;
 }
 
-.generate-button {
+#generate-button {
   padding: 10px 20px;
   background-color: #007bff;
   color: white;
@@ -329,7 +329,7 @@ export default {
   cursor: pointer;
 }
 
-.generate-button:hover {
+#generate-button:hover {
   background-color: #0056b3;
 }
 
