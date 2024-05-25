@@ -1,37 +1,33 @@
 <template>
   <div id="app">
-    <MDBNavbar
-        container
-        expand="lg"
-        bg="light"
-        class="d-flex justify-content-between"
-    >
-      <MDBNavbarBrand>
+    <MDBNavbar container expand="lg" bg="light" class="d-flex justify-content-between">
+      <MDBNavbarBrand href="/" onclick="window.location.href=''">
         <MDBIcon icon="cookie-bite" size="2x" class="mx-3">MyRecipAI</MDBIcon>
       </MDBNavbarBrand>
       <MDBNavbarNav class="mb-2 mb-lg-0">
-        <MDBNavbarItem to="/" linkClass="link-secondary">Home</MDBNavbarItem>
+        <MDBNavbarItem to="/" linkClass="link-secondary" onclick="window.location.href=''">Home</MDBNavbarItem>
         <MDBNavbarItem to="/calculator" linkClass="link-secondary">Metrics calculator</MDBNavbarItem>
         <MDBNavbarItem v-if="isLoggedIn" to="/addRecipe" linkClass="link-secondary">Add Recipe</MDBNavbarItem>
         <MDBNavbarItem v-if="isLoggedIn" to="/generate" onclick="window.location.href=''" linkClass="link-secondary">Generate Recipe</MDBNavbarItem>
       </MDBNavbarNav>
       <MDBNavbarNav id="navbarSupportedContent">
         <!-- Search form -->
-        <form class="d-flex input-group w-auto">
+        <form class="d-flex input-group w-auto" @submit.prevent="search">
           <input
               type="search"
+              v-model="searchQuery"
               class="form-control"
-              placeholder="Search"
+              placeholder="Search recipe title"
               aria-label="Search"
           />
-          <MDBIcon icon="search" size="2x" id="searchIcon" class="mx-3"></MDBIcon>
+          <MDBIcon icon="search" @click="search" size="2x" id="searchIcon" class="mx-3"></MDBIcon>
         </form>
         <!-- Search form -->
       </MDBNavbarNav>
       <MDBNavbarNav class="mb-2 mb-lg-0 d-flex flex-row">
-        <MDBNavbarItem v-if="isLoggedIn" onclick="window.location.href=''" :to="profileLink" class="me-3 me-lg-0">
+        <MDBNavbarItem v-if="isLoggedIn" :to="profileLink" class="me-3 me-lg-0">
           <img v-if="profilePic" :src="require(`../../main/resources/images/${this.profilePic}`)"
-                class="rounded-circle"
+               class="rounded-circle"
                height="40"
                alt="Profile"
                loading="lazy">
@@ -82,6 +78,7 @@ export default {
     return {
       isLoggedIn: false,
       profilePic: null,
+      searchQuery: '',
     };
   },
   computed: {
@@ -113,6 +110,13 @@ export default {
             .catch(error => {
               console.error('Error fetching user details:', error);
             });
+      }
+    },
+    search() {
+      if (this.searchQuery) {
+        this.$router.push({ name: 'search', params: { msg: this.searchQuery.trim() } }).then(() => {
+          window.location.reload();
+        });
       }
     },
   },

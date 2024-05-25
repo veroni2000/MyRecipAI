@@ -19,6 +19,8 @@ import recipeEditComponent from "@/components/RecipeEditComponent";
 import recipeModifyComponent from "@/components/RecipeModifyComponent";
 import imageUploadComponent from "@/components/ImageUploadComponent";
 import generateRecipeComponent from "@/components/GenerateRecipeComponent";
+import searchRecipeComponent from "@/components/SearchRecipeComponent";
+import searchRecipesByIngredientComponent from "@/components/SearchRecipesByIngredientComponent";
 
 // Create the router instance
 const router = createRouter({
@@ -40,6 +42,8 @@ const router = createRouter({
         { path: '/recipe/modify/:recipeId', name: 'recipeModify', component: recipeModifyComponent },
         { path: '/image', name: 'image', component: imageUploadComponent },
         { path: '/generate', name: 'generate', component: generateRecipeComponent },
+        { path: '/search/:msg', name: 'search', component: searchRecipeComponent },
+        { path: '/searchIng/:ingId/:ingName', name: 'searchByIngredient', component: searchRecipesByIngredientComponent },
     ]
 });
 

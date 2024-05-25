@@ -58,7 +58,9 @@
           <table class="ingredients-table">
             <tbody>
             <tr v-for="(ingredientItem, index) in recipe.recipeIngredients" :key="index">
-              <td><i class="fas fa-cookie"></i> {{ ingredientItem.ingredient.ingredient }}</td>
+              <td><i class="fas fa-cookie"></i>
+                <router-link :to="{ name: 'searchByIngredient', params: { ingId: ingredientItem.ingredient.id, ingName: ingredientItem.ingredient.ingredient }}">{{ ingredientItem.ingredient.ingredient }}</router-link>
+              </td>
               <td>{{ displayIngredientValue(ingredientItem) }}</td>
             </tr>
             </tbody>

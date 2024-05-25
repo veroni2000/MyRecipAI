@@ -2,10 +2,13 @@ package com.example.myrecipai.controller;
 
 import com.example.myrecipai.dto.CreateRecipeDTO;
 import com.example.myrecipai.dto.RecipeDTO;
+import com.example.myrecipai.model.Ingredient;
+import com.example.myrecipai.model.Recipe;
 import com.example.myrecipai.service.ChatGptService;
 import com.example.myrecipai.service.RecipeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -42,10 +45,10 @@ public class RecipeController {
         return recipeService.editRecipeById(recipeId, recipeDTO);
     }
 
-    @GetMapping("/all")
-    public List<RecipeDTO> getAllRecipes() {
-        return recipeService.getAllRecipes();
-    }
+//    @GetMapping("/all")
+//    public List<RecipeDTO> getAllRecipes() {
+//        return recipeService.getAllRecipes();
+//    }
 
     @GetMapping("/byUser")
     public List<RecipeDTO> findRecipesByUser(@RequestParam Long userId) {
@@ -75,5 +78,12 @@ public class RecipeController {
     @GetMapping("/saveUrlImage")
     public String saveImage(@RequestParam String imageUrl) throws IOException {
         return chatGptService.saveGeneratedImage(imageUrl);
+    }
+
+    @GetMapping("/followedUsersRecipe")
+    public Page<RecipeDTO> getFollowedUsersRecipes (@RequestParam Long userId,
+                                                    @RequestParam(defaultValue = "0") int page,
+                                                    @RequestParam(defaultValue = "10") int size){
+        return recipeService.getFollowedUsersRecipes(userId, page, size);
     }
 }

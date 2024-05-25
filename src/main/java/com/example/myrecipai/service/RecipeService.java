@@ -4,14 +4,13 @@ import com.example.myrecipai.dto.CreateRecipeDTO;
 import com.example.myrecipai.dto.RecipeDTO;
 import com.example.myrecipai.dto.UserWithoutPasswordDTO;
 import com.example.myrecipai.exception.BadRequestException;
-import com.example.myrecipai.model.Recipe;
-import com.example.myrecipai.model.RecipeImage;
-import com.example.myrecipai.model.RecipeIngredient;
-import com.example.myrecipai.model.User;
+import com.example.myrecipai.model.*;
 import com.example.myrecipai.repository.IngredientRepository;
+import com.example.myrecipai.repository.RecipeIngredientRepository;
 import com.example.myrecipai.repository.RecipeRepository;
 import com.example.myrecipai.repository.UserRepository;
 import jakarta.servlet.http.HttpServletResponse;
+import org.jetbrains.annotations.NotNull;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -19,6 +18,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import java.io.File;
 import java.io.IOException;
@@ -38,6 +40,8 @@ public class RecipeService {
     private RecipeRepository recipeRepository;
     @Autowired
     private IngredientRepository ingredientRepository;
+    @Autowired
+    private RecipeIngredientRepository recipeIngredientRepository;
     @Autowired
     private UserRepository userRepository;
 
@@ -118,25 +122,18 @@ public class RecipeService {
 
     public List<RecipeDTO> findRecipesByUser(Long userId) {
         ModelMapper modelMapper = new ModelMapper();
-        List<Recipe> recipes = recipeRepository.findAllByUserId(userId);
-        List<RecipeDTO> recipeDTOList = new ArrayList<>();
-        for (Recipe recipe : recipes) {
-            RecipeDTO dto = modelMapper.map(recipe, RecipeDTO.class);
-            dto.setCreatedBy(modelMapper.map(recipe.getUser(), UserWithoutPasswordDTO.class));
-            recipeDTOList.add(dto);
-        }
-        return recipeDTOList;
+        List<Recipe> recipes = recipeRepository.findAllByUserIdOrderByDateCreatedDesc(userId);
+        return getRecipeDTOS(modelMapper, recipes);
     }
-    public List<RecipeDTO> getAllRecipes() {
+    public Page<RecipeDTO> getAllRecipes(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Recipe> recipes = recipeRepository.getAllRecipesReversed(pageable);
+        return recipes.map(this::convertToDto);
+    }
+
+    private RecipeDTO convertToDto(Recipe recipe) {
         ModelMapper modelMapper = new ModelMapper();
-        List<Recipe> recipes = recipeRepository.getAllRecipesReversed();
-        List<RecipeDTO> recipeDTOList = new ArrayList<>();
-        for (Recipe recipe : recipes) {
-            RecipeDTO dto = modelMapper.map(recipe, RecipeDTO.class);
-            dto.setCreatedBy(modelMapper.map(recipe.getUser(), UserWithoutPasswordDTO.class));
-            recipeDTOList.add(dto);
-        }
-        return recipeDTOList;
+        return modelMapper.map(recipe, RecipeDTO.class);
     }
 
     public ResponseEntity<RecipeDTO> editRecipeById(Long recipeId, RecipeDTO recipeDTO) {
@@ -181,5 +178,33 @@ public class RecipeService {
     public void downloadImage(String name, HttpServletResponse response) throws IOException {
         File file = new File(imageDirectory + name);
         Files.copy(file.toPath(), response.getOutputStream());
+    }
+
+    public Page<RecipeDTO> searchRecipes(String title, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Recipe> recipes = recipeRepository.searchRecipes(title, pageable);
+        return recipes.map(this::convertToDto);
+    }
+
+    public List<RecipeDTO> getRecipesByIngredient(Long ingredientId) {
+        ModelMapper modelMapper = new ModelMapper();
+        List<Recipe> recipes = recipeIngredientRepository.findAllRecipesByIngredientId(ingredientId);
+        return getRecipeDTOS(modelMapper, recipes);
+    }
+
+    @NotNull
+    private List<RecipeDTO> getRecipeDTOS(ModelMapper modelMapper, List<Recipe> recipes) {
+        List<RecipeDTO> recipeDTOList = new ArrayList<>();
+        for (Recipe recipe : recipes) {
+            RecipeDTO dto = modelMapper.map(recipe, RecipeDTO.class);
+            dto.setCreatedBy(modelMapper.map(recipe.getUser(), UserWithoutPasswordDTO.class));
+            recipeDTOList.add(dto);
+        }
+        return recipeDTOList;
+    }
+    public Page<RecipeDTO> getFollowedUsersRecipes(Long userId, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Recipe> recipes = recipeRepository.getFollowedUsersRecipes(userId, pageable);
+        return recipes.map(this::convertToDto);
     }
 }

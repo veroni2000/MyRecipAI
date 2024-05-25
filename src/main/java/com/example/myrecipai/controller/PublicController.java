@@ -1,6 +1,7 @@
 package com.example.myrecipai.controller;
 
 import com.example.myrecipai.dto.RecipeDTO;
+import com.example.myrecipai.model.Recipe;
 import com.example.myrecipai.service.ChatGptService;
 import com.example.myrecipai.service.LikeService;
 import com.example.myrecipai.service.RecipeService;
@@ -12,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -83,8 +85,9 @@ public class PublicController {
     }
 
     @GetMapping("/recipes/all")
-    public List<RecipeDTO> getAllRecipes() {
-        return recipeService.getAllRecipes();
+    public Page<RecipeDTO> getAllRecipes(@RequestParam(defaultValue = "0") int page,
+                                         @RequestParam(defaultValue = "10") int size) {
+        return recipeService.getAllRecipes(page, size);
     }
 
     @GetMapping("/recipe/{recipeId}")
@@ -96,4 +99,16 @@ public class PublicController {
     public Long getAllLikesByRecipeId(@RequestParam Long recipeId) {
         return likeService.getAllLikesByRecipeId(recipeId);
     }
+
+    @GetMapping("/search")
+    public Page<RecipeDTO> searchRecipes(@RequestParam String title,
+                                         @RequestParam(defaultValue = "0") int page,
+                                         @RequestParam(defaultValue = "10") int size) {
+        return recipeService.searchRecipes(title, page, size);
+    }
+
+    @GetMapping("/recipesByIngredient")
+    public List<RecipeDTO> getRecipesByIngredient(@RequestParam Long ingredientId){
+        return recipeService.getRecipesByIngredient(ingredientId);
+    };
 }
