@@ -7,7 +7,6 @@ import com.theokanning.openai.messages.Message;
 import com.theokanning.openai.messages.MessageRequest;
 import com.theokanning.openai.runs.CreateThreadAndRunRequest;
 import com.theokanning.openai.runs.Run;
-import com.theokanning.openai.service.OpenAiService;
 import com.theokanning.openai.threads.Thread;
 import com.theokanning.openai.threads.ThreadRequest;
 import org.springframework.beans.factory.annotation.Value;
@@ -26,7 +25,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 @Service
-public class ChatGptService {
+public class OpenAiService {
     @Value("${openai.api.key}")
     private String openaiApiKey;
 
@@ -34,7 +33,7 @@ public class ChatGptService {
     private String imageDirectory;
 
     public String getMessage(String userMessage, String assistantId) throws InterruptedException {
-        OpenAiService openAiService = new OpenAiService(openaiApiKey);
+        com.theokanning.openai.service.OpenAiService openAiService = new com.theokanning.openai.service.OpenAiService(openaiApiKey);
 
         List<MessageRequest> messageRequests = new ArrayList<>();
         MessageRequest messageRequest = new MessageRequest();
@@ -64,7 +63,7 @@ public class ChatGptService {
     }
 
     public String getImage(String prompt) {
-        OpenAiService openAiService = new OpenAiService(openaiApiKey);
+        com.theokanning.openai.service.OpenAiService openAiService = new com.theokanning.openai.service.OpenAiService(openaiApiKey);
         CreateImageRequest createImageRequest = new CreateImageRequest();
         createImageRequest.setPrompt(prompt);
         createImageRequest.setSize("512x512");

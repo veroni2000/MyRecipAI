@@ -2,12 +2,19 @@
   <div class="recipe-details">
     <div v-if="recipe" class="recipe-container">
       <div class="images">
-        <img v-if="imageUrl" :src=imageUrl class="recipe-image">
-        <img v-else-if="recipe.image" :src="require(`../../../main/resources/images/${recipe.image}`)"
-             :alt="recipe.image"
-             class="recipe-image"/>
-        <img v-else :src="require(`../../../main/resources/images/defaultRecipe.png`)"
-             alt="default recipe picture" class="recipe-image">
+        <vue-load-image>
+          <template v-slot:image>
+            <img v-if="imageUrl" :src="imageUrl" class="recipe-image">
+            <img v-else-if="recipe.image" :src="require(`../../../main/resources/images/${recipe.image}`)"
+                 :alt="recipe.image" class="recipe-image"/>
+            <img v-else :src="require(`../../../main/resources/images/defaultRecipe.png`)" alt="default recipe picture"
+                 class="recipe-image">
+          </template>
+          <template v-slot:preloader>
+            <img src="../../../main/resources/images/image-loader.gif"/>
+          </template>
+          <template v-slot:error>Image load fails</template>
+        </vue-load-image>
         <div class="like-container">
           <div v-if="loggedIn">
             <i class="far fa-heart fa-3x" id="like" v-if="showLike" @click="likeRecipe"></i>
@@ -45,6 +52,9 @@
             {{ recipe.createdBy.firstName + ' ' + recipe.createdBy.lastName }}
           </router-link>
         </div>
+        <div>
+          <strong>On: </strong>{{ formatDate(recipe.dateCreated) }}
+        </div>
         <div class="ingredients">
           <strong>Ingredients:</strong>
           <div class="toggle-switch">
@@ -59,7 +69,10 @@
             <tbody>
             <tr v-for="(ingredientItem, index) in recipe.recipeIngredients" :key="index">
               <td><i class="fas fa-cookie"></i>
-                <router-link :to="{ name: 'searchByIngredient', params: { ingId: ingredientItem.ingredient.id, ingName: ingredientItem.ingredient.ingredient }}">{{ ingredientItem.ingredient.ingredient }}</router-link>
+                <router-link
+                    :to="{ name: 'searchByIngredient', params: { ingId: ingredientItem.ingredient.id, ingName: ingredientItem.ingredient.ingredient }}">
+                  {{ ingredientItem.ingredient.ingredient }}
+                </router-link>
               </td>
               <td>{{ displayIngredientValue(ingredientItem) }}</td>
             </tr>
@@ -78,13 +91,41 @@
       </i>
     </div>
   </div>
+  <div class="comment-section" v-if="loggedIn">
+    <button @click="toggleCommentForm" class="add-comment-btn">
+      {{ showCommentForm ? 'Close' : 'Add Comment' }}
+    </button>
+    <div v-if="showCommentForm" class="comment-form">
+      <textarea v-model="newCommentText" placeholder="Write your comment here..."></textarea>
+      <button @click="submitComment" class="submit-comment-btn">Submit Comment</button>
+    </div>
+  </div>
+
+  <div v-if="comments.length" id="comments" class="comments-section">
+    <h3>Comments</h3>
+    <div v-for="comment in comments" :key="comment.id" class="comment">
+      <div class="comment-user">
+        <router-link :to="{ name: 'user', params: { userId: comment.user.id }}">
+          <img v-if="comment.user.image" :src="require(`../../../main/resources/images/${comment.user.image}`)"
+               :alt="comment.user.image" class="profile-pic" style="width: 30px;">
+          <img v-else :src="require(`../../../main/resources/images/default.png`)"
+               alt="default profile picture" class="profile-pic" style="width: 30px;">
+          <strong>{{ comment.user.firstName + ' ' + comment.user.lastName }}</strong>
+        </router-link>
+      </div>
+      <div class="comment-text">
+        {{ comment.text }}
+      </div>
+    </div>
+  </div>
 </template>
 
 <script>
 import axios from 'axios';
-import {MDBBadge, MDBSwitch} from "mdb-vue-ui-kit";
+import {MDBBadge, MDBSwitch, MDBSpinner} from "mdb-vue-ui-kit";
 import axiosInstance from "@/components/apiClient";
-import {MDBSpinner} from "mdb-vue-ui-kit";
+import {format} from 'date-fns';
+import VueLoadImage from 'vue-load-image'
 
 export default {
   name: 'RecipePageComponent',
@@ -92,6 +133,7 @@ export default {
     MDBBadge,
     MDBSpinner,
     MDBSwitch,
+    'vue-load-image': VueLoadImage,
   },
   data() {
     return {
@@ -107,14 +149,19 @@ export default {
       showEdit: false,
       imageUrl: '',
       likes: '',
+      comments: [],
+      showCommentForm: false,
+      newCommentText: '',
     };
   },
   mounted() {
     this.fetchRecipeDetails();
     this.isLoggedIn();
-    if (this.loggedIn)
+    if (this.loggedIn) {
       this.checkLike();
+    }
     this.getLikesCount();
+    this.getComments();
   },
   computed: {
     profileLink() {
@@ -122,22 +169,16 @@ export default {
       return {name: 'user', params: {userId}};
     },
     recipeImageUrl() {
-      // Use ImageService to get the image URL based on recipe.image
-      let name = '../../../main/resources/images/'
-      console.log(this.recipe.image);
+      let name = '../../../main/resources/images/';
       return this.recipe.image ? name + this.recipe.image : null;
     },
   },
   methods: {
     async checkCurrentUser() {
-      //await this.fetchRecipeDetails(); // Ensure recipe data is fetched
-
       if (this.recipe && this.recipe.createdBy) {
         const userIdFromRecipe = this.recipe.createdBy.id;
         const loggedInUserId = localStorage.getItem("id");
-        if (userIdFromRecipe == loggedInUserId)
-          this.showEdit = true;
-        else this.showEdit = false;
+        this.showEdit = userIdFromRecipe == loggedInUserId;
       }
     },
     async fetchRecipeDetails() {
@@ -150,7 +191,6 @@ export default {
       await axios.get(`/api/public/recipe/${recipeId}`)
           .then(response => {
             this.recipe = response.data;
-            // Set default display mode based on recipe defaultMetric
             this.displayMode = this.recipe.defaultMetric === 'volume' ? 'volume' : 'weight';
             this.isWeightMode = this.displayMode === 'weight';
           })
@@ -158,6 +198,9 @@ export default {
             console.error('Error fetching recipe details:', error);
           });
       await this.checkCurrentUser();
+    },
+    formatDate(dateString) {
+      return format(new Date(dateString), 'MMMM d, yyyy');
     },
     toggleDisplayMode() {
       this.displayMode = this.isWeightMode ? 'volume' : 'weight';
@@ -189,7 +232,7 @@ export default {
       })
           .then(() => {
             this.showLike = true;
-            this.getLikesCount()
+            this.getLikesCount();
           })
           .catch(error => {
             console.error('Error for unlike:', error);
@@ -220,6 +263,39 @@ export default {
           .catch(error => {
             console.error('Error:', error);
           });
+    },
+    getComments() {
+      axios.get(`/api/public/comments?recipeId=${this.$route.params.recipeId}`)
+          .then(response => {
+            if (response.data) {
+              this.comments = response.data;
+            }
+          })
+          .catch(error => {
+            console.error('Error:', error);
+          });
+    },
+    toggleCommentForm() {
+      this.showCommentForm = !this.showCommentForm;
+    },
+    async submitComment() {
+      if (!this.newCommentText.trim()) {
+        return; // Prevent empty comments
+      }
+      const newComment = {
+        userId: localStorage.getItem('id'),
+        recipeId: this.recipe.id,
+        text: this.newCommentText,
+      };
+
+      try {
+        await axiosInstance.post('/comment', newComment);
+        this.getComments();
+        this.newCommentText = '';
+        this.showCommentForm = false;
+      } catch (error) {
+        console.error('Error submitting comment:', error);
+      }
     },
   },
 };
@@ -327,4 +403,96 @@ pre {
 i {
   margin-right: 5px;
 }
+
+.comments-section {
+  margin-top: 30px;
+  max-width: 80%;
+  margin-left: auto;
+  margin-right: auto;
+  background-color: #f9f9f9;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  width: 60%;
+  margin-bottom: 30px;
+}
+
+.comment {
+  margin-top: 10px;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+}
+
+.comment-user {
+  display: flex; /* Use flexbox for horizontal alignment */
+  align-items: center;
+  font-weight: bold;
+}
+
+.comment-user img {
+  width: 30px;
+  height: 30px; /* Ensure the image is square */
+  border-radius: 50%;
+  margin-right: 10px; /* Add space between the image and the text */
+}
+
+.comment-text {
+  margin-top: 5px;
+  margin-left: 40px;
+  text-align: left;
+}
+
+.comments-section {
+  margin-top: 30px;
+  max-width: 80%;
+  margin-left: auto;
+  margin-right: auto;
+  background-color: #f9f9f9;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  width: 60%;
+  margin-bottom: 30px;
+}
+
+.comment-section {
+  margin-top: 20px;
+}
+
+.add-comment-btn {
+  border-radius: 5px;
+  border: none;
+  padding: 10px 20px;
+  background-color: #6183a8;
+  color: white;
+  margin-bottom: 30px;
+}
+
+.submit-comment-btn {
+  background-color: #6183a8;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  display: block;
+  position: center;
+}
+
+.comment-form {
+  margin-top: -10px;
+  width: 50%;
+  margin-left: 25%;
+  margin-bottom: 30px;
+}
+
+.comment-form textarea {
+  width: 100%;
+  height: 100px;
+  padding: 10px;
+  margin-bottom: 10px;
+  border-radius: 5px;
+  border: 1px solid #ddd;
+}
+
 </style>

@@ -4,8 +4,10 @@ import com.example.myrecipai.dto.CreateRecipeDTO;
 import com.example.myrecipai.dto.RecipeDTO;
 import com.example.myrecipai.dto.UserWithoutPasswordDTO;
 import com.example.myrecipai.exception.BadRequestException;
-import com.example.myrecipai.model.*;
-import com.example.myrecipai.repository.IngredientRepository;
+import com.example.myrecipai.model.Recipe;
+import com.example.myrecipai.model.RecipeImage;
+import com.example.myrecipai.model.RecipeIngredient;
+import com.example.myrecipai.model.User;
 import com.example.myrecipai.repository.RecipeIngredientRepository;
 import com.example.myrecipai.repository.RecipeRepository;
 import com.example.myrecipai.repository.UserRepository;
@@ -14,13 +16,13 @@ import org.jetbrains.annotations.NotNull;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 
 import java.io.File;
 import java.io.IOException;
@@ -39,11 +41,23 @@ public class RecipeService {
     @Autowired
     private RecipeRepository recipeRepository;
     @Autowired
-    private IngredientRepository ingredientRepository;
-    @Autowired
     private RecipeIngredientRepository recipeIngredientRepository;
     @Autowired
     private UserRepository userRepository;
+    @Autowired
+    private OpenAiService openAiService;
+
+    @Value("${openai.api.key}")
+    private String openaiApiKey;
+
+    @Value("${openai.api.assistant.cups-to-grams}")
+    private String assistCupsToGrams;
+
+    @Value("${openai.api.assistant.grams-to-cups}")
+    private String assistGramsToCups;
+
+    @Value("${openai.api.assistant.time-cal-price}")
+    private String assistTimeCalPrice;
 
     public Long createRecipe(CreateRecipeDTO createRecipeDTO) {
         ModelMapper modelMapper = new ModelMapper();
@@ -67,7 +81,7 @@ public class RecipeService {
                 recipeImage.setRecipe(recipe);
             }
         }
-
+        recipe.setCommentsCount(0L);
         recipeRepository.save(recipe);
         return recipe.getId();
     }
@@ -207,4 +221,71 @@ public class RecipeService {
         Page<Recipe> recipes = recipeRepository.getFollowedUsersRecipes(userId, pageable);
         return recipes.map(this::convertToDto);
     }
+
+    public void fillMissingWeight() throws InterruptedException {
+        List<RecipeIngredient> ingredients = recipeIngredientRepository.getEmptyWeight();
+        for (RecipeIngredient ingredient : ingredients) {
+            String msg = ingredient.getIngredient().toString() + " " + ingredient.getVolume().toString();
+            String weight = openAiService.getMessage(msg, assistCupsToGrams);
+            ingredient.setWeight(weight);
+            recipeIngredientRepository.save(ingredient);
+        }
+    }
+
+    public void fillMissingVolume() throws InterruptedException {
+        List<RecipeIngredient> ingredients = recipeIngredientRepository.getEmptyVolume();
+        for (RecipeIngredient ingredient : ingredients) {
+            String msg = ingredient.getIngredient().toString() + " " + ingredient.getWeight().toString();
+            String volume = openAiService.getMessage(msg, assistGramsToCups);
+            ingredient.setVolume(volume);
+            recipeIngredientRepository.save(ingredient);
+        }
+    }
+
+    public void fillMissingTimeCalPrice() throws InterruptedException {
+        List<Recipe> recipes = recipeRepository.getEmptyTimeCalPrice();
+//        for (Recipe recipe : recipes) {
+        Recipe recipe = recipes.get(0);
+        StringBuilder msg = new StringBuilder(recipe.getTitle().toString() + " " + recipe.getInstructions().toString());
+
+        List<RecipeIngredient> recipeIngredients = recipeIngredientRepository.findAllByRecipeId(recipe.getId());
+        for (RecipeIngredient recipeIngredient : recipeIngredients) {
+            msg.append(recipeIngredient.getIngredient()).append(" ").append(recipeIngredient.getWeight());
+        }
+
+            String timeCalPrice = openAiService.getMessage(msg.toString(), assistTimeCalPrice);
+            String[] parts = timeCalPrice.split(";");
+            String timePart = null;
+            String pricePart = null;
+            String calPart = null;
+            // Find the parts that contain 'Time', 'Price', and 'Calories'
+            for (String part : parts) {
+                if (part.contains("Time")) {
+                    timePart = part;
+                } else if (part.contains("Price")) {
+                    pricePart = part;
+                } else if (part.contains("Calories")) {
+                    calPart = part;
+                }
+            }
+            // Extract and set the recipe time
+            if (timePart != null) {
+                recipe.setRecipeTime(timePart.split("Time:")[1].trim());
+                System.out.println(recipe.getRecipeTime());
+            }
+            // Extract and set the recipe price
+            if (pricePart != null) {
+                recipe.setRecipePrice(pricePart.split("Price:")[1].trim());
+                System.out.println(recipe.getRecipePrice());
+            }
+            // Extract and set the recipe calories
+            if (calPart != null) {
+                recipe.setRecipeCalories(String.valueOf(Integer.parseInt(calPart.split("Calories:")[1].trim())));
+                System.out.println(recipe.getRecipeCalories());
+            }
+
+            recipeRepository.save(recipe);
+        }
+//    }
+
 }

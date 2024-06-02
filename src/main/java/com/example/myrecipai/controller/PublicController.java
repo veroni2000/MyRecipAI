@@ -1,12 +1,12 @@
 package com.example.myrecipai.controller;
 
+import com.example.myrecipai.dto.CommentDTO;
 import com.example.myrecipai.dto.RecipeDTO;
-import com.example.myrecipai.model.Recipe;
-import com.example.myrecipai.service.ChatGptService;
+import com.example.myrecipai.service.OpenAiService;
+import com.example.myrecipai.service.CommentService;
 import com.example.myrecipai.service.LikeService;
 import com.example.myrecipai.service.RecipeService;
 import com.theokanning.openai.assistants.Assistant;
-import com.theokanning.openai.service.OpenAiService;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,11 +31,13 @@ import java.util.List;
 @RequiredArgsConstructor
 public class PublicController {
     @Autowired
-    private ChatGptService chatGptService;
+    private OpenAiService openAiService;
     @Autowired
     private RecipeService recipeService;
     @Autowired
     private LikeService likeService;
+    @Autowired
+    private CommentService commentService;
     @Value("${openai.api.key}")
     private String openaiApiKey;
 
@@ -50,18 +52,18 @@ public class PublicController {
 
     @GetMapping("/assistant")
     public Assistant assistant(@RequestParam String assistantId) {
-        OpenAiService openAiService = new OpenAiService(openaiApiKey);
+        com.theokanning.openai.service.OpenAiService openAiService = new com.theokanning.openai.service.OpenAiService(openaiApiKey);
         return openAiService.retrieveAssistant(assistantId);
     }
 
     @GetMapping("/cupsToGrams")
     public String cupsToGrams(@RequestParam String msg) throws InterruptedException {
-        return chatGptService.getMessage(msg, assistCupsToGrams);
+        return openAiService.getMessage(msg, assistCupsToGrams);
     }
 
     @GetMapping("/gramsToCups")
     public String gramsToCups(@RequestParam String msg) throws InterruptedException {
-        return chatGptService.getMessage(msg, assistGramsToCups);
+        return openAiService.getMessage(msg, assistGramsToCups);
     }
 
     @GetMapping("/image/{imageName:.+}")
@@ -110,5 +112,10 @@ public class PublicController {
     @GetMapping("/recipesByIngredient")
     public List<RecipeDTO> getRecipesByIngredient(@RequestParam Long ingredientId){
         return recipeService.getRecipesByIngredient(ingredientId);
-    };
+    }
+
+    @GetMapping("/comments")
+    public ResponseEntity<List<CommentDTO>> getAllCommentsByRecipe(@RequestParam("recipeId") Long id) {
+        return ResponseEntity.ok(commentService.getAllCommentsByRecipe(id));
+    }
 }

@@ -25,4 +25,5 @@ public class RecipeDTO {
     private String recipeTime;
     private String recipeCalories;
     private String recipePrice;
+    private Long commentsCount;
 }

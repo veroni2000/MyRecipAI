@@ -2,9 +2,7 @@ package com.example.myrecipai.controller;
 
 import com.example.myrecipai.dto.CreateRecipeDTO;
 import com.example.myrecipai.dto.RecipeDTO;
-import com.example.myrecipai.model.Ingredient;
-import com.example.myrecipai.model.Recipe;
-import com.example.myrecipai.service.ChatGptService;
+import com.example.myrecipai.service.OpenAiService;
 import com.example.myrecipai.service.RecipeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -20,7 +18,7 @@ import java.util.List;
 @RequestMapping("/api/recipe")
 public class RecipeController {
     @Autowired
-    private ChatGptService chatGptService;
+    private OpenAiService openAiService;
     @Autowired
     private RecipeService recipeService;
 
@@ -57,17 +55,17 @@ public class RecipeController {
 
     @GetMapping("/generate")
     public String generateRecipe(@RequestParam String prompt) throws InterruptedException {
-        return chatGptService.getMessage(prompt, assistRecipe);
+        return openAiService.getMessage(prompt, assistRecipe);
     }
 
     @GetMapping("/image")
     public String image(@RequestParam String prompt) {
-        return chatGptService.getImage(prompt);
+        return openAiService.getImage(prompt);
     }
 
     @GetMapping("/timeCalPrice")
     public String timeCalPrice(@RequestParam String prompt) throws InterruptedException {
-        return chatGptService.getMessage(prompt, assistTimeCalPrice);
+        return openAiService.getMessage(prompt, assistTimeCalPrice);
     }
 
     @PostMapping("/saveImage")
@@ -77,7 +75,7 @@ public class RecipeController {
 
     @GetMapping("/saveUrlImage")
     public String saveImage(@RequestParam String imageUrl) throws IOException {
-        return chatGptService.saveGeneratedImage(imageUrl);
+        return openAiService.saveGeneratedImage(imageUrl);
     }
 
     @GetMapping("/followedUsersRecipe")
