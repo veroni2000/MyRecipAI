@@ -5,8 +5,8 @@
       <RecipeComponent :recipe="recipe" />
     </div>
     <div ref="sentinel" class="sentinel"></div>
-    <p v-if="loading" class="loading">Loading more recipes...</p>
-    <p v-if="noMoreData" class="no-more-data">No more recipes to load.</p>
+    <p v-if="loading" class="loading">Loading recipes...</p>
+    <p v-if="noMoreData" class="no-more-data">All recipes found are loaded.</p>
   </div>
 </template>
 

@@ -8,7 +8,7 @@
   >
   <div class="search-container">
     <ul v-if="showResults" class="search-results">
-      <li v-if="showAddButton" @click="addNewIngredient">
+      <li v-if="showAddButton" @click="addNewIngredient" style="color: green">
         Add "{{ ingredient }}"
       </li>
       <li v-for="result in results" :key="result.id" @click="selectIngredient(result)">
@@ -36,7 +36,7 @@ export default {
   computed: {
     showAddButton() {
       // Check if the input exactly matches any of the results and the button is not already clicked
-      return this.results.every(result => result.ingredient.toLowerCase() !== this.ingredient.toLowerCase().trimEnd()) && !this.addButtonClicked;
+      return this.results.every(result => result.ingredient.toLowerCase() !== this.ingredient.toLowerCase().trimEnd()) && !this.addButtonClicked && this.ingredient !== '';
     }
   },
   methods: {
@@ -79,6 +79,7 @@ export default {
           .then(() => {
             this.$emit('ingredient-selected', this.ingredient);
             this.addButtonClicked = true;  // Set the flag to true after the button is clicked
+            this.showResults = false;
           })
           .catch(error => {
             console.error('Error adding ingredient:', error);

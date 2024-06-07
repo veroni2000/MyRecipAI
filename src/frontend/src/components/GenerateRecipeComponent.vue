@@ -2,11 +2,14 @@
   <div class="generate-recipe-container">
     <div v-if="!startedGenerating" class="input-section">
       <h2>Enter Ingredients:</h2>
-      <textarea id="ingredients" v-model="ingredientInput" rows="4" @input="sanitizeInput" class="textarea-input"></textarea>
-      <button type="submit" @click="generateRecipe" :disabled="!ingredientInput" class="btn btn-primary" id="generate-button">Generate Recipe</button>
+      <textarea id="ingredients" v-model="ingredientInput" rows="4" @input="sanitizeInput"
+                class="textarea-input"></textarea>
+      <button type="submit" @click="generateRecipe" :disabled="!ingredientInput" class="btn btn-primary"
+              id="generate-button">Generate Recipe
+      </button>
     </div>
     <div v-if="displayError" class="error-message">
-      <p>Something went wrong. Please check your input and make sure it contains food ingredients only.</p>
+      <p>Something went wrong. Please check your input and make sure it contains only food ingredients and correct measurements.</p>
     </div>
     <div v-else-if="finishedGenerating" class="recipe-section">
       <h2>Generated Recipe: {{ recipe.title }}</h2>
@@ -14,7 +17,7 @@
         <img :src="imageUrl" alt="Image" class="recipe-image"/>
       </div>
       <h3>Instructions:</h3>
-      <p>{{ recipe.instructions }}</p>
+      <pre>{{ recipe.instructions }}</pre>
       <h3>Ingredients:</h3>
       <ul class="ingredient-list">
         <li v-for="(ingredientItem, index) in recipe.recipeIngredients" :key="index" class="ingredient-item">
@@ -24,9 +27,9 @@
       <div v-if="recipe.recipePrice" class="additional-info">
         <p>Estimated time to complete the recipe, calories and price:</p>
         <ul>
-          <li v-if="recipe.recipeTime">Time: {{ recipe.recipeTime }}</li>
-          <li v-if="recipe.recipeCalories">Calories: {{ recipe.recipeCalories }}</li>
-          <li v-if="recipe.recipePrice">Price: €{{ recipe.recipePrice }}</li>
+          <li v-if="recipe.recipeTime">Estimates time: {{ recipe.recipeTime }}</li>
+          <li v-if="recipe.recipeCalories">Estimated calories: {{ recipe.recipeCalories }}</li>
+          <li v-if="recipe.recipePrice">Estimated price: €{{ recipe.recipePrice }}</li>
         </ul>
       </div>
       <button @click="saveRecipe" class="save-button">Save Recipe</button>
@@ -34,7 +37,7 @@
     <div v-else>
       <div v-if="startedGenerating" class="loading-section">
         <h3>Generating recipe with {{ ingredientInput }}...</h3>
-        <p>{{ loadingText }}</p>
+        <pre>{{ loadingText }}</pre>
         <i class="fas fa-cookie fa-7x fa-spin" style="color: #e6b18e; margin-top: 5rem"></i>
       </div>
     </div>
@@ -215,24 +218,23 @@ export default {
 
       // Concatenate recipe details to the prompt
       prompt += `Title: ${this.recipe.title}\n`;
-      prompt += `Instructions: ${this.recipe.instructions}\n`;
+      // prompt += `Instructions: ${this.recipe.instructions}\n`;
       prompt += 'Ingredients:\n';
       this.recipe.recipeIngredients.forEach((ingredient) => {
         prompt += `- ${ingredient.ingredient.ingredient}\n`;
       });
       console.log(JSON.stringify(prompt));
-        const imageResponse = await axios.get(`/api/recipe/image?prompt=${encodeURIComponent(prompt)}`, {
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('jwtToken')}`
-          },
-        }).catch(error => {
-          console.error('Error:', error);
-
-        });
-
+      const imageResponse = await axios.get(`/api/recipe/image?prompt=${encodeURIComponent(prompt)}`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('jwtToken')}`
+        },
+      }).catch(error => {
+        console.error('Error:', error);
+      });
+      if (imageResponse.data)
         this.imageUrl = imageResponse.data;
-        console.log(this.imageUrl);
-        await this.getImageFromUrl(this.imageUrl);
+      console.log(this.imageUrl);
+      await this.getImageFromUrl(this.imageUrl);
     },
     async getImageFromUrl() {
       if (this.imageUrl) {
@@ -362,14 +364,25 @@ export default {
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
-.ingredient-list {
-  list-style: none;
-  padding: 0;
+.ingredient-list ul {
+  list-style-type: none;
+  padding-left: 20px;
 }
 
-.ingredient-item {
-  margin-bottom: 10px;
-  font-size: 1.1em;
+.ingredient-list li {
+  background: #f7f7f7;
+  padding: 10px;
+  margin-bottom: 5px;
+  border-radius: 5px;
+}
+
+.additional-info ul {
+  list-style-type: none;
+  padding-left: 20px;
+}
+
+.additional-info li {
+  margin-bottom: 5px;
 }
 
 .additional-info {
@@ -403,5 +416,9 @@ export default {
 .loading-section p {
   font-size: 1.2em;
   color: #666;
+}
+
+pre {
+  white-space: pre-wrap;
 }
 </style>

@@ -1,5 +1,6 @@
 <template>
   <div class="home-page">
+<!--    <p>{{msg}}</p>-->
     <div class="tabs">
       <button :class="{ active: activeTab === 'all' }" @click="setActiveTab('all')">All Recipes</button>
       <button v-if="isLoggedIn" :class="{ active: activeTab === 'following' }" @click="setActiveTab('following')">Following</button>

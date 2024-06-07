@@ -29,11 +29,13 @@
           <img v-if="profilePic" :src="require(`../../main/resources/images/${this.profilePic}`)"
                class="rounded-circle"
                height="40"
+               width="40"
                alt="Profile"
                loading="lazy">
           <img v-else :src="require(`../../main/resources/images/default.png`)"
                class="rounded-circle"
                height="40"
+               width="40"
                alt="Profile"
                loading="lazy">
         </MDBNavbarItem>

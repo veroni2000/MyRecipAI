@@ -34,18 +34,21 @@
                 backgroundSize: 'cover',
                 backgroundPosition: 'center',
               }"></div>
-              <div class="recipe-info">
-                <h3>{{ recipe.title }}</h3>
-                <div>
-                  <strong>Ingredients:</strong>
-                  <ul class="ingredient-list">
-                    <li v-for="(ingredientItem, index) in recipe.recipeIngredients" :key="index" class="ingredient-item">
-                      {{ ingredientItem.ingredient.ingredient }}
-                    </li>
-                  </ul>
-                </div>
-              </div>
             </router-link>
+            <div class="recipe-info">
+              <h3>{{ recipe.title }}</h3>
+              <button @click="toggleIngredients(recipe.id)" class="toggle-ingredients-btn">
+                {{ recipe.showIngredients ? 'Hide Ingredients' : 'Show Ingredients' }}
+              </button>
+              <div v-if="recipe.showIngredients">
+                <strong>Ingredients:</strong>
+                <ul class="ingredient-list">
+                  <li v-for="(ingredientItem, index) in recipe.recipeIngredients" :key="index" class="ingredient-item">
+                    {{ ingredientItem.ingredient.ingredient }}
+                  </li>
+                </ul>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -101,11 +104,18 @@ export default {
         }
       })
           .then(response => {
-            this.recipes = response.data;
+            this.recipes = response.data.map(recipe => ({
+              ...recipe,
+              showIngredients: false
+            }));
           })
           .catch(error => {
             console.error('Error fetching recipes by user:', error);
           });
+    },
+    toggleIngredients(recipeId) {
+      const recipe = this.recipes.find(recipe => recipe.id === recipeId);
+      recipe.showIngredients = !recipe.showIngredients;
     },
     logout() {
       localStorage.clear();
@@ -176,7 +186,6 @@ export default {
   flex-direction: column;
   align-items: center;
   padding: 20px;
-  /*background-color: #f9f9f9;*/
   border-radius: 10px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
@@ -190,8 +199,8 @@ export default {
 }
 
 .profile-pic {
-  width: 200px; /* Increased size */
-  height: 200px; /* Increased size */
+  width: 200px;
+  height: 200px;
   border-radius: 50%;
   object-fit: cover;
   margin-right: 20px;
@@ -208,13 +217,13 @@ export default {
 .profile-info h2 {
   margin: 0;
   margin-bottom: 10px;
-  font-size: 2em; /* Increased size */
+  font-size: 2em;
 }
 
 .stats {
   display: flex;
   gap: 20px;
-  font-size: 1.2em; /* Increased size */
+  font-size: 1.2em;
 }
 
 .profile-actions {
@@ -227,7 +236,7 @@ export default {
 }
 
 .follow-button {
-  padding: 10px 20px; /* Increased size */
+  padding: 10px 20px;
   background-color: #007bff;
   color: #fff;
   border: none;
@@ -263,13 +272,23 @@ export default {
 
 .recipe-image {
   width: 100%;
-  padding-top: 75%; /* Aspect ratio 4:3 */
+  padding-top: 75%;
   background-size: cover;
   background-position: center;
 }
 
 .recipe-info {
   padding: 15px;
+}
+
+.toggle-ingredients-btn {
+  padding: 10px 20px;
+  background-color: #28a745;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-top: 10px;
 }
 
 .ingredient-list {
@@ -282,17 +301,4 @@ export default {
   list-style-type: none;
 }
 
-.logout-button {
-  margin-top: 20px;
-  padding: 10px 20px;
-  background-color: #007bff;
-  color: #fff;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-}
-
-.logout-button:hover {
-  background-color: #0056b3;
-}
 </style>

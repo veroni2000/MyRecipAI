@@ -5,8 +5,8 @@
       <div className="form-group">
         <label htmlFor="conversionType">Conversion Type:</label>
         <select v-model="conversionType" className="form-control" id="conversionType">
-          <option value="gramsToCups">Grams to Cups</option>
-          <option value="cupsToGrams">Cups to Grams</option>
+          <option value="gramsToCups">Weight to Volume</option>
+          <option value="cupsToGrams">Volume to Weight</option>
         </select>
       </div>
 
@@ -25,7 +25,7 @@
       </div>
       <br>
       <div v-if="isLoading">
-<!--        <i class="fas fa-cookie-bite fa-3x fa-spin" style="color: #e6b18e"></i>-->
+        <!--        <i class="fas fa-cookie-bite fa-3x fa-spin" style="color: #e6b18e"></i>-->
         <p>Loading</p>
         <i class="fas fa-cookie fa-7x fa-spin" style="color: #e6b18e; margin-top: 5rem">
           <MDBSpinner style="margin-top: 25rem"/>
@@ -40,8 +40,8 @@
     <div v-if="displayError">
       <p>Something went wrong. Please check your input and make sure it contains food ingredients only.</p>
     </div>
-    <div v-else-if="convertedValue !== null">
-      <p>{{msg}} = {{ convertedValue }}</p>
+    <div v-else-if="convertedValue !== null" style="margin-top: 10px;">
+      <strong> {{ msg }} = {{ convertedValue }} </strong>
     </div>
   </div>
 </template>
@@ -75,7 +75,10 @@ export default {
       const assistant = this.conversionType;
       axios.get(`/api/public/${assistant}?msg=${this.msg}`)
           .then(response => {
-            if (response.data.toLowerCase().includes('sorry')) {
+            console.log(response.data);
+            if (response.data == '0') {
+              this.displayError = true;
+            } else if (response.data.toLowerCase().includes('sorry')) {
               this.displayError = true;
             } else {
               this.convertedValue = response.data;
