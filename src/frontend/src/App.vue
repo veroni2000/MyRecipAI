@@ -25,7 +25,7 @@
         <!-- Search form -->
       </MDBNavbarNav>
       <MDBNavbarNav class="mb-2 mb-lg-0 d-flex flex-row">
-        <MDBNavbarItem v-if="isLoggedIn" :to="profileLink" class="me-3 me-lg-0">
+        <MDBNavbarItem v-if="isLoggedIn" :to="profileLink" onclick="window.location.href=''" class="me-3 me-lg-0">
           <img v-if="profilePic" :src="require(`../../main/resources/images/${this.profilePic}`)"
                class="rounded-circle"
                height="40"
@@ -58,7 +58,7 @@ import {
   MDBIcon,
 } from 'mdb-vue-ui-kit';
 import {ref} from "vue";
-import axiosInstance from "@/components/apiClient";
+import axiosInstance from "@/services/apiClient";
 
 export default {
   name: 'App',

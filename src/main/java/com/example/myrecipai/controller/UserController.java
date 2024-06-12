@@ -1,6 +1,6 @@
 package com.example.myrecipai.controller;
 
-import com.example.myrecipai.config.JwtUtil;
+import com.example.myrecipai.utils.JwtUtil;
 import com.example.myrecipai.dto.UserEditDTO;
 import com.example.myrecipai.dto.UserWithoutPasswordDTO;
 import com.example.myrecipai.model.User;

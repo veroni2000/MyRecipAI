@@ -1,4 +1,4 @@
-package com.example.myrecipai.config;
+package com.example.myrecipai.utils;
 import com.example.myrecipai.model.User;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;

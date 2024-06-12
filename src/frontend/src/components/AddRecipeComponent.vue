@@ -65,7 +65,7 @@
       </form>
     </div>
     <div class="recipe-notes">
-      <pre><i class="fas fa-circle-info"></i> Note that some modifications will be done to the recipe after creation.
+      <pre><i class="fas fa-circle-info"></i> Note that some improvements will be done to the recipe after creation.
       <i class="fas fa-circle-info"></i> The recipe will appear with converted measurements, added picture, and estimated time, calories, and price.
       <i class="fas fa-circle-info"></i> You will be able to edit your recipes at any time.
       </pre>

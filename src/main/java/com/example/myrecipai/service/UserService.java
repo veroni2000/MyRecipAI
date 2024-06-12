@@ -1,6 +1,6 @@
 package com.example.myrecipai.service;
 
-import com.example.myrecipai.config.JwtUtil;
+import com.example.myrecipai.utils.JwtUtil;
 import com.example.myrecipai.controller.AuthenticationRequest;
 import com.example.myrecipai.dto.*;
 import com.example.myrecipai.exception.BadRequestException;

@@ -11,7 +11,7 @@
 </template>
 
 <script>
-import axiosInstance from "@/components/apiClient";
+import axiosInstance from "@/services/apiClient";
 import RecipeComponent from "@/components/RecipeComponent";
 
 export default {

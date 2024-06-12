@@ -286,6 +286,9 @@ public class RecipeService {
 
             recipeRepository.save(recipe);
         }
+    public void deleteRecipeById(Long id) {
+        recipeRepository.deleteById(id);
+    }
 //    }
 
 }

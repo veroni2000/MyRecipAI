@@ -84,4 +84,8 @@ public class RecipeController {
                                                     @RequestParam(defaultValue = "10") int size){
         return recipeService.getFollowedUsersRecipes(userId, page, size);
     }
+    @DeleteMapping("/deleteRecipe")
+    public void deleteRecipe(@RequestParam("id") Long id){
+        recipeService.deleteRecipeById(id);
+    }
 }

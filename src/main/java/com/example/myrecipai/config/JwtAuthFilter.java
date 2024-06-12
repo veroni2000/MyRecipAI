@@ -1,5 +1,6 @@
 package com.example.myrecipai.config;
 
+import com.example.myrecipai.utils.JwtUtil;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

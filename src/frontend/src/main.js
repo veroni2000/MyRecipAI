@@ -1,6 +1,6 @@
 import 'mdb-vue-ui-kit/css/mdb.min.css'
-import { createApp } from 'vue';
-import { createRouter, createWebHistory } from 'vue-router';
+import {createApp} from 'vue';
+import {createRouter, createWebHistory} from 'vue-router';
 import axios from 'axios'; // Import axios
 import App from './App.vue';
 import RegistrationComponent from "@/components/RegistrationComponent";
@@ -17,7 +17,6 @@ import AddIngredientComponent from "@/components/AddIngredientComponent";
 import recipePageComponent from "@/components/RecipePageComponent";
 import recipeEditComponent from "@/components/RecipeEditComponent";
 import recipeModifyComponent from "@/components/RecipeModifyComponent";
-import imageUploadComponent from "@/components/ImageUploadComponent";
 import generateRecipeComponent from "@/components/GenerateRecipeComponent";
 import searchRecipeComponent from "@/components/SearchRecipeComponent";
 import searchRecipesByIngredientComponent from "@/components/SearchRecipesByIngredientComponent";
@@ -40,7 +39,6 @@ const router = createRouter({
         { path: '/recipe/:recipeId', name: 'recipe', component: recipePageComponent },
         { path: '/recipe/edit/:recipeId', name: 'recipeEdit', component: recipeEditComponent },
         { path: '/recipe/modify/:recipeId', name: 'recipeModify', component: recipeModifyComponent },
-        { path: '/image', name: 'image', component: imageUploadComponent },
         { path: '/generate', name: 'generate', component: generateRecipeComponent },
         { path: '/search/:msg', name: 'search', component: searchRecipeComponent },
         { path: '/searchIng/:ingId/:ingName', name: 'searchByIngredient', component: searchRecipesByIngredientComponent },

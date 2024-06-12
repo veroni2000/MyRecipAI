@@ -123,7 +123,7 @@
 <script>
 import axios from 'axios';
 import {MDBBadge, MDBSwitch, MDBSpinner} from "mdb-vue-ui-kit";
-import axiosInstance from "@/components/apiClient";
+import axiosInstance from "@/services/apiClient";
 import {format} from 'date-fns';
 import VueLoadImage from 'vue-load-image'
 

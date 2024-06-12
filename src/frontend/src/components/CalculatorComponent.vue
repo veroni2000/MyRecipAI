@@ -76,7 +76,7 @@ export default {
       axios.get(`/api/public/${assistant}?msg=${this.msg}`)
           .then(response => {
             console.log(response.data);
-            if (response.data == '0') {
+            if (response.data === '0') {
               this.displayError = true;
             } else if (response.data.toLowerCase().includes('sorry')) {
               this.displayError = true;

@@ -57,7 +57,7 @@
 </template>
 
 <script>
-import axiosInstance from "@/components/apiClient";
+import axiosInstance from "@/services/apiClient";
 import axios from "axios";
 
 export default {

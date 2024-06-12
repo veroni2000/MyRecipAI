@@ -33,7 +33,7 @@
       </div>
       <div v-else class="loading">
         <pre>Loading...
-        Making some modifications to the recipe...
+        Making some improvements to the recipe...
         <i class="fas fa-cookie-bite fa-7x fa-spin" style="color: #e6b18e; margin-top: 5rem"></i>
         </pre>
       </div>
@@ -148,8 +148,6 @@ export default {
           },
         })
             .then(async response => {
-              console.log('Image added successfully');
-              console.log(response.data);
               this.recipe.image = response.data;
             })
             .catch(error => {
