@@ -38,7 +38,7 @@
     </div>
 
     <div v-if="displayError">
-      <p>Something went wrong. Please check your input and make sure it contains food ingredients only.</p>
+      <p>Something went wrong. Please check your input and make sure it contains only food ingredients and relevant amount.</p>
     </div>
     <div v-else-if="convertedValue !== null" style="margin-top: 10px;">
       <strong> {{ msg }} = {{ convertedValue }} </strong>
@@ -76,7 +76,7 @@ export default {
       axios.get(`/api/public/${assistant}?msg=${this.msg}`)
           .then(response => {
             console.log(response.data);
-            if (response.data === '0') {
+            if (response.data === 0) {
               this.displayError = true;
             } else if (response.data.toLowerCase().includes('sorry')) {
               this.displayError = true;

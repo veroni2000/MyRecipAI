@@ -31,7 +31,7 @@
         <p>There was a problem with some calculations. The modification will be finished automatically later.</p>
         <router-link :to="'/recipe/' + recipe.id" class="go-to-recipe-btn">Go to recipe</router-link>
       </div>
-      <div v-else class="loading">
+      <div v-else class="loading" style="margin-top: 20px;">
         <pre>Loading...
         Making some improvements to the recipe...
         <i class="fas fa-cookie-bite fa-7x fa-spin" style="color: #e6b18e; margin-top: 5rem"></i>
@@ -113,6 +113,7 @@ export default {
             } else await this.loadImage(this.recipe.image);
           })
           .catch(error => {
+            this.displayError = true;
             console.error('Error fetching recipe details:', error);
           });
     },
@@ -170,12 +171,13 @@ export default {
             },
           });
           this.promptGramsToCups = "";
+          if(volumeResponse.data === 0)
+            this.displayError = true;
           if (!volumeResponse.data.toLowerCase().includes('sorry') || !volumeResponse.data.toLowerCase().includes('appropriate')
               || !volumeResponse.data.toLowerCase().includes('cannot') || !volumeResponse.data.toLowerCase().includes('assist')
               || !volumeResponse.data.toLowerCase().includes('n/a')) {
             ingredient.volume = volumeResponse.data;
             this.displayError = true;
-            console.log(ingredient.volume);
           }
         }
       } else {
@@ -187,12 +189,13 @@ export default {
             },
           });
           this.promptCupsToGrams = "";
-          if (!weightResponse.data.toLowerCase().includes('sorry') || !weightResponse.data.toLowerCase().includes('appropriate')
+          if(weightResponse.data === 0)
+            this.displayError = true;
+          else if (!weightResponse.data.toLowerCase().includes('sorry') || !weightResponse.data.toLowerCase().includes('appropriate')
               || !weightResponse.data.toLowerCase().includes('cannot') || !weightResponse.data.toLowerCase().includes('assist')
               || !weightResponse.data.toLowerCase().includes('n/a')) {
             ingredient.weight = weightResponse.data;
             this.displayError = true;
-            console.log(ingredient.weight);
           }
         }
       }
