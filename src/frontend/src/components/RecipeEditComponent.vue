@@ -1,6 +1,7 @@
 <template>
   <div class="edit-recipe-container">
     <h2 align="center">Edit Recipe</h2>
+    <button type="submit" class="btn btn-danger" style="margin-left: 80%" :onclick="deleteRecipe">Delete recipe</button>
     <div class="form-wrapper">
       <form @submit.prevent="updateRecipe" class="edit-recipe-form">
         <!-- Title Input -->
@@ -184,7 +185,21 @@ export default {
               // Handle error if the request fails
             });
       }
-    }
+    },
+    async deleteRecipe() {
+      axios.delete(`/api/recipe/deleteRecipe?id=`+this.recipe.id, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('jwtToken')}`
+        }
+      })
+          .then(response => {
+            console.log('Recipe deleted successfully', response.data);
+            this.$router.push({name: 'home'});
+          })
+          .catch(error => {
+            console.error('Error deleting recipe:', error);
+          });
+    },
   }
 };
 </script>

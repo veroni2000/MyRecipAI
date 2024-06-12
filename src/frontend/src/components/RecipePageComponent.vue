@@ -104,6 +104,7 @@
   <div v-if="comments.length" id="comments" class="comments-section">
     <h3>Comments</h3>
     <div v-for="comment in comments" :key="comment.id" class="comment">
+      <i class="fas fa-trash-can" @click="deleteComment(comment.id)" v-if="showEdit||currentUser==comment.user.id" style="margin-left: 96%"/>
       <div class="comment-user">
         <router-link :to="{ name: 'user', params: { userId: comment.user.id }}">
           <img v-if="comment.user.image" :src="require(`../../../main/resources/images/${comment.user.image}`)"
@@ -152,6 +153,7 @@ export default {
       comments: [],
       showCommentForm: false,
       newCommentText: '',
+      currentUser: '',
     };
   },
   mounted() {
@@ -178,6 +180,7 @@ export default {
       if (this.recipe && this.recipe.createdBy) {
         const userIdFromRecipe = this.recipe.createdBy.id;
         const loggedInUserId = localStorage.getItem("id");
+        this.currentUser = loggedInUserId;
         this.showEdit = userIdFromRecipe == loggedInUserId;
       }
     },
@@ -296,6 +299,20 @@ export default {
       } catch (error) {
         console.error('Error submitting comment:', error);
       }
+    },
+    async deleteComment(id) {
+      axios.delete(`/api/comment/?id=`+id, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('jwtToken')}`
+        }
+      })
+          .then(response => {
+            console.log('Comment deleted successfully', response.data);
+            window.location.reload();
+          })
+          .catch(error => {
+            console.error('Error deleting comment:', error);
+          });
     },
   },
 };
